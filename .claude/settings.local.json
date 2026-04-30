@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs wc *)",
+      "Bash(./gradlew core:compileJava)",
+      "PowerShell(Add-Type -AssemblyName System.Drawing; $img = [System.Drawing.Image]::FromFile\\(\"C:\\\\Users\\\\dael\\\\Desktop\\\\Dael\\\\Project\\\\Arcana\\\\arcana_java\\\\Card_Example.png\"\\); \"Width: $\\($img.Width\\), Height: $\\($img.Height\\)\"; $img.Dispose\\(\\))",
+      "Bash(./gradlew :core:compileJava :lwjgl3:compileJava)",
+      "Bash(jar tf *)",
+      "PowerShell($srcJar = \"C:\\\\Users\\\\dael\\\\.gradle\\\\caches\\\\modules-2\\\\files-2.1\\\\com.badlogicgames.gdx\\\\gdx-backend-lwjgl3\\\\1.14.0\\\\25ee7eb0fb0bf8647f258e1500bf25ac02c5b37d\\\\gdx-backend-lwjgl3-1.14.0-sources.jar\"; Add-Type -AssemblyName System.IO.Compression.FileSystem; $zip = [System.IO.Compression.ZipFile]::OpenRead\\($srcJar\\); $entry = $zip.Entries | Where-Object { $_.Name -eq \"Lwjgl3ApplicationConfiguration.java\" }; $reader = New-Object System.IO.StreamReader\\($entry.Open\\(\\)\\); $content = $reader.ReadToEnd\\(\\); $reader.Close\\(\\); $zip.Dispose\\(\\); $content | Select-String -Pattern \"\\(?i\\)\\(hdpi|dpi|pixel|scale\\)\" | Select-Object -First 20)"
+    ]
+  }
+}
