@@ -11,7 +11,21 @@ public class Card {
     public final int cost;
     public final boolean isExtinction;
 
+    public int costModifier = 0;
+
     public boolean reversed;
+
+    public boolean shouldFlipIllust() {
+        if (!reversed) return false;
+        if (type == ArcanaType.MAJOR) return true;
+        String rank = id.substring(id.lastIndexOf('/') + 1);
+        return rank.equals("Page") || rank.equals("Knight")
+            || rank.equals("Queen") || rank.equals("King");
+    }
+
+    public int effectiveCost() {
+        return Math.max(0, cost + costModifier);
+    }
 
     public Card(String id, String name, ArcanaType type, Suit suit, int cost, boolean isExtinction) {
         this.id = id;

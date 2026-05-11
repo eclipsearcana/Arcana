@@ -1,6 +1,7 @@
 package io.eclipse.arcana.render;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -10,8 +11,11 @@ import io.eclipse.arcana.model.Card;
 
 public class CardRenderer {
 
-    public static final float CARD_W = 90f;
-    public static final float CARD_H = 126f;
+    public static final float CARD_W = 160f;
+    public static final float CARD_H = CARD_W * 2.09f;
+
+    private static final float COST_SIZE   = 48f;
+    private static final float COST_OFFSET = 14f;
 
     private static final Color COL_FILL      = new Color(0.08f, 0.08f, 0.10f, 1f);
     private static final Color COL_MAJOR     = new Color(1.0f,  0.84f, 0.0f,  1f);
@@ -26,22 +30,83 @@ public class CardRenderer {
 
     private static final GlyphLayout LAYOUT = new GlyphLayout();
 
+    // ── 앞면 렌더 (텍스처 있으면 이미지, 없으면 shape fallback) ───────────────
+
     /**
-     * 카드 도형(배경, 테두리, 코스트 원)을 그린다.
-     * ShapeRenderer.begin(Filled) 블록 안에서 호출해야 한다.
+     * 카드 전체 렌더 — shape + text 통합 진입점
+     * 텍스처 없을 때 사용 (기존 방식 유지)
+     */
+    public static void draw(ShapeRenderer sr, SpriteBatch batch, BitmapFont font,
+                            Card card, float x, float y) {
+        drawShape(sr, card, x, y);
+        // shape은 sr.begin() 블록, text는 batch.begin() 블록 — 호출부에서 분리해야 함
+        // 이 메서드는 편의용이 아니라 아래 두 개를 각각 쓸 것
+    }
+
+    /**
+     * 카드 일러스트 텍스처로 렌더
+     * SpriteBatch.begin() 블록 안에서 호출
+     * illust가 null이면 아무것도 안 그림 → drawShape으로 대신 그릴 것
+     */
+    public static void drawIllust(SpriteBatch batch, Texture illust, float x, float y, boolean reversed) {
+        if (illust == null) return;
+        if (reversed) {
+            batch.draw(illust,
+                x, y, CARD_W, CARD_H,
+                0, 0, illust.getWidth(), illust.getHeight(),
+                false, true);
+        } else {
+            batch.draw(illust, x, y, CARD_W, CARD_H);
+        }
+    }
+
+    /**
+     * 코스트 이미지를 카드의 좌상단에 배치하는 메소드
+     * @param batch
+     * @param font
+     * @param costTex
+     * @param card
+     * @param x
+     * @param y
+     * @param size
+     */
+    public static void drawCost(SpriteBatch batch, BitmapFont font,
+                                Texture costTex, Card card, float x, float y, float size) {
+        float cx = x - COST_OFFSET;
+        float cy = y + CARD_H - size + COST_OFFSET;
+
+        if (costTex != null) {
+            batch.draw(costTex, cx, cy, size, size);
+        } else {
+            Color borderCol = borderColor(card);
+            font.setColor(borderCol);
+            String costStr = String.valueOf(card.cost);
+            LAYOUT.setText(font, costStr);
+            font.draw(batch, costStr,
+                x + CARD_W - 14 - LAYOUT.width / 2f,
+                y + 14 + LAYOUT.height / 2f);
+            font.setColor(Color.WHITE);
+        }
+    }
+
+    // ── Shape 렌더 ────────────────────────────────────────────────────────────
+
+    /**
+     * Shape Renderer
+     * @param sr
+     * @param card
+     * @param x
+     * @param y
      */
     public static void drawShape(ShapeRenderer sr, Card card, float x, float y) {
         Color border = borderColor(card);
 
-        // 테두리 (바깥 사각형)
         sr.setColor(border);
         sr.rect(x, y, CARD_W, CARD_H);
 
-        // 배경 채우기 (2px 안쪽)
         sr.setColor(COL_FILL);
         sr.rect(x + 2, y + 2, CARD_W - 4, CARD_H - 4);
 
-        // 역방향: 빨간 내부 링
         if (card.reversed) {
             sr.setColor(COL_REVERSED);
             sr.rect(x + 4, y + 4, CARD_W - 8, CARD_H - 8);
@@ -49,7 +114,7 @@ public class CardRenderer {
             sr.rect(x + 6, y + 6, CARD_W - 12, CARD_H - 12);
         }
 
-        // 코스트 원 (우하단)
+        // 기존 코스트 원 — shape fallback일 때만 그림
         float cx = x + CARD_W - 14, cy = y + 14;
         sr.setColor(border);
         sr.circle(cx, cy, 10f, 16);
@@ -59,6 +124,7 @@ public class CardRenderer {
 
     /**
      * 카드 뒷면 shape
+     * ShapeRenderer.begin(Filled) 블록 안에서 호출
      */
     public static void drawBack(ShapeRenderer sr, float x, float y) {
         sr.setColor(COL_BACK_BORDER);
@@ -77,10 +143,12 @@ public class CardRenderer {
         sr.rect(x + 11, y + 11, CARD_W - 22, CARD_H - 22);
     }
 
+    // ── 텍스트 렌더 ───────────────────────────────────────────────────────────
+
     /**
-     * 카드 텍스트(이름, 타입 라벨, 코스트, 소멸 마커)를 그린다.
-     * SpriteBatch.begin() 블록 안에서 호출해야 한다.
-     * font은 FontManager.small 크기를 넘겨줄 것.
+     * 카드 앞면 텍스트 — shape fallback일 때 사용
+     * 텍스처 렌더 시에는 drawCost()만 호출하면 됨
+     * SpriteBatch.begin() 블록 안에서 호출
      */
     public static void drawText(SpriteBatch batch, BitmapFont font, Card card, float x, float y) {
         Color borderCol = borderColor(card);
@@ -91,19 +159,22 @@ public class CardRenderer {
         LAYOUT.setText(font, name);
         font.draw(batch, name, x + (CARD_W - LAYOUT.width) / 2f, y + CARD_H - 4f);
 
-        // 소멸 마커 — 좌상단 (이름과 겹치지 않도록 앞에 배치)
+        // 소멸 마커
         if (card.isExtinction) {
             font.setColor(COL_MAJOR);
             font.draw(batch, "★", x + 3f, y + CARD_H - 4f);
         }
 
-        // 타입/슈트 라벨 — 중앙
+        // 타입/수트 라벨 — 중앙
         font.setColor(0.55f, 0.55f, 0.55f, 1f);
         String label = card.type == Card.ArcanaType.MAJOR ? "Major" : cap(card.suit.name());
         LAYOUT.setText(font, label);
-        font.draw(batch, label, x + (CARD_W - LAYOUT.width) / 2f, y + CARD_H / 2f + LAYOUT.height / 2f);
+        font.draw(batch, label,
+            x + (CARD_W - LAYOUT.width) / 2f,
+            y + CARD_H / 2f + LAYOUT.height / 2f);
 
-        // 코스트 숫자 — 우하단 원 안
+        // 코스트 숫자 — shape fallback용 (drawCost의 else 브랜치와 중복되므로
+        // drawShape + drawText 세트로 쓸 때만 호출)
         font.setColor(borderCol);
         String costStr = String.valueOf(card.cost);
         LAYOUT.setText(font, costStr);
@@ -113,6 +184,8 @@ public class CardRenderer {
 
         font.setColor(Color.WHITE);
     }
+
+    // ── 내부 유틸 ─────────────────────────────────────────────────────────────
 
     private static Color borderColor(Card card) {
         if (card.type == Card.ArcanaType.MAJOR) return COL_MAJOR;
