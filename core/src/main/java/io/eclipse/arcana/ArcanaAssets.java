@@ -49,6 +49,15 @@ public class ArcanaAssets {
             if (fileExists(costRev)) manager.load(costRev, Texture.class);  // ← 추가
         }
 
+        String foolCopy = "cards/major/Cost/Fool_Copy.png";
+        if (fileExists(foolCopy)) manager.load(foolCopy, Texture.class);
+
+        String magicianContract = "cards/major/Cost/Magician_Contract.png";
+        if (fileExists(magicianContract)) manager.load(magicianContract, Texture.class);
+
+        String magicianIllusion = "cards/major/Cost/Magician_Illusion.png";
+        if (fileExists(magicianIllusion)) manager.load(magicianIllusion, Texture.class);
+
         // ── Minor 일러스트 ───────────────────────────────────────────────────
         for (Suit suit : SUITS) {
             String suitName = cap(suit.name());
@@ -97,6 +106,18 @@ public class ArcanaAssets {
     }
 
     public Texture cardCost(Card card) {
+        if (card.isCloned) {
+            return manager.get("cards/major/Cost/Fool_Copy.png", Texture.class);
+        }
+
+        if (card.powerMultiplier > 1.1f && !card.isIllusion) {
+            return manager.get("cards/major/Cost/Magician_Contract.png", Texture.class);
+        }
+
+        if (card.isIllusion) {
+            return manager.get("cards/major/Cost/Magician_Illusion.png", Texture.class);
+        }
+
         if (card.type == Card.ArcanaType.MAJOR) {
             String base = "cards/major/Cost/" + card.id + ".png";
             String rev  = "cards/major/Cost/" + card.id + "_Reverse.png";

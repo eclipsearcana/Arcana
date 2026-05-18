@@ -17,8 +17,6 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 import io.eclipse.arcana.model.*;
-import io.eclipse.arcana.model.effect.CardEffect;
-import io.eclipse.arcana.model.effect.EffectRegistry;
 import io.eclipse.arcana.render.CardRenderer;
 
 public class MainScreen implements Screen {
@@ -212,8 +210,6 @@ public class MainScreen implements Screen {
         if (drawingCard == null) return;
         drawProgress += DRAW_SPEED * delta;
         if (drawProgress >= 1f) {
-            GameState.applyReverseChance(drawingCard);
-            state.currentPlayer().hand.add(drawingCard);
             drawingCard = null;
             drawProgress = 0f;
         }
@@ -386,7 +382,6 @@ public class MainScreen implements Screen {
     }
 
     // ── 날아가는 카드 렌더 ────────────────────────────────────────────────────
-    // Interpolation.swingOut: 살짝 튀어나갔다가 안착하는 느낌
     private void drawPlayingCard() {
         if (playingCard == null) return;
 
@@ -395,7 +390,6 @@ public class MainScreen implements Screen {
         float cx = playStartX + (PLAY_TARGET_X - playStartX) * t;
         float cy = playStartY + (PLAY_TARGET_Y - playStartY) * t;
 
-        // 날아가면서 살짝 커지는 효과 (1.0 → 1.15 → 1.0)
         float scale = 1f + 0.15f * (float) Math.sin(playProgress * Math.PI);
         float w = CardRenderer.CARD_W * scale;
         float h = CardRenderer.CARD_H * scale;
@@ -451,10 +445,10 @@ public class MainScreen implements Screen {
             shape.setColor(COL_PANEL_BG);
             shape.rect(PANEL_X, PANEL_Y, PANEL_W, PANEL_H);
             shape.setColor(COL_PANEL_BORDER);
-            shape.rect(PANEL_X,                PANEL_Y,           PANEL_W, 1f);
-            shape.rect(PANEL_X,                PANEL_Y + PANEL_H, PANEL_W, 1f);
-            shape.rect(PANEL_X,                PANEL_Y,           1f, PANEL_H);
-            shape.rect(PANEL_X + PANEL_W - 1f, PANEL_Y,           1f, PANEL_H);
+            shape.rect(PANEL_X, PANEL_Y, PANEL_W, 1f);
+            shape.rect(PANEL_X, PANEL_Y + PANEL_H, PANEL_W, 1f);
+            shape.rect(PANEL_X, PANEL_Y,1f, PANEL_H);
+            shape.rect(PANEL_X + PANEL_W - 1f, PANEL_Y, 1f, PANEL_H);
         }
 
         if (state.phase == GamePhase.GAME_OVER) {
@@ -478,8 +472,8 @@ public class MainScreen implements Screen {
         if (state.phase == GamePhase.GAME_OVER) {
             drawBtnLabel("다시 시작", btnRestart);
         } else {
-            drawBtnLabel("드로우",        btnDraw);
-            drawBtnLabel("페이즈 진행",   btnPhase);
+            drawBtnLabel("드로우", btnDraw);
+            drawBtnLabel("페이즈 진행", btnPhase);
             drawBtnLabel("디버그: -25HP", btnDebug);
         }
         fonts.small.setColor(Color.WHITE);
@@ -581,15 +575,16 @@ public class MainScreen implements Screen {
         if (left) {
             if (btnDraw.contains(wx, wy)) {
                 if (state.currentPlayer().hand.size < GameConfig.HAND_MAX) {
-                    Card drawn = state.currentPlayer().deck.draw();
+                    Card drawn = state.drawCard(state.currentPlayer());
                     if (drawn != null) {
-                        drawingCard  = drawn;
+                        drawingCard = drawn;
                         drawProgress = 0f;
-                        int nextIdx  = state.currentPlayer().hand.size;
-                        drawEndX     = handStartX(nextIdx + 1)
+                        int handSize = Math.max(1, state.currentPlayer().hand.size);
+                        int nextIdx = handSize - 1;
+                        drawEndX = handStartX(handSize)
                             + nextIdx * (CardRenderer.CARD_W + GAP)
                             + CardRenderer.CARD_W / 2f;
-                        drawEndY     = HAND0_Y + CardRenderer.CARD_H / 2f;
+                        drawEndY = HAND0_Y + CardRenderer.CARD_H / 2f;
                     }
                 }
                 return;
@@ -607,53 +602,24 @@ public class MainScreen implements Screen {
 
         // 카드 클릭
         Player current = state.currentPlayer();
-        float  handY   = (state.currentPlayerIndex == 0) ? HAND0_Y : HAND1_Y;
-        int    idx     = getHandIndexAt(current.hand, handY, wx, wy);
+        float  handY = (state.currentPlayerIndex == 0) ? HAND0_Y : HAND1_Y;
+        int    idx = getHandIndexAt(current.hand, handY, wx, wy);
 
         if (idx < 0) return;
 
         if (left) {
-            Card card = current.hand.get(idx);
-
-            if (state.turnPhase != TurnPhase.ACTION) return;
-
-            // 코스트 감지
-            if (!GameConfig.DEV_NO_COST_LIMIT) {
-                if (current.cost < card.cost) return;
-            }
-            current.cost -= card.effectiveCost();
-
-            if (card.suit == Suit.WANDS)     current.wandsPlayedThisTurn++;
-            if (card.suit == Suit.CUPS)      current.cupsPlayedThisTurn++;
-            if (card.suit == Suit.SWORDS)    current.swordsPlayedThisTurn++;
-            if (card.suit == Suit.PENTACLES) current.pentaclesPlayedThisTurn++;
-
-            CardEffect effect = EffectRegistry.get(card.id);
-            if (effect != null) {
-                Player target = state.players[1 - state.currentPlayerIndex];
-                if (card.reversed) {
-                    effect.executeReversed(state, current, target);
-                } else {
-                    effect.executeUpright(state, current, target);
-                }
-            }
-
-            // 필드 추가
-            current.field.add(card);
-
             // 애니메이션 시작 — 카드 시작 위치 저장
             float startX = handStartX(current.hand.size)
                 + idx * (CardRenderer.CARD_W + GAP);
             float startY = handY + hoverLift(idx);
 
-            playingCard  = card;
-            playStartX   = startX + CardRenderer.CARD_W / 2f;  // 카드 중앙
-            playStartY   = startY + CardRenderer.CARD_H / 2f;
-            playProgress = 0f;
+            Card played = state.playCardFromHand(current, idx);
+            if (played == null) return;
 
-            // 핸드에서 제거
-            current.hand.removeIndex(idx);
-            state.checkWinCondition();
+            playingCard = played;
+            playStartX = startX + CardRenderer.CARD_W / 2f;  // 카드 중앙
+            playStartY = startY + CardRenderer.CARD_H / 2f;
+            playProgress = 0f;
 
         } else {
             current.hand.get(idx).reversed = !current.hand.get(idx).reversed;

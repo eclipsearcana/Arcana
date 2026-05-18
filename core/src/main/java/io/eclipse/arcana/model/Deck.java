@@ -10,6 +10,8 @@ public class Deck {
         cards.add(card);
     }
 
+    public void addBottom(Card card) { cards.insert(0, card); }
+
     public void shuffle() {
         cards.shuffle();
     }

@@ -11,6 +11,8 @@ public class Card {
     public final int cost;
     public final boolean isExtinction;
 
+    public boolean isRevealed = false;
+
     public int costModifier = 0;
 
     public boolean reversed;
@@ -25,6 +27,20 @@ public class Card {
 
     public int effectiveCost() {
         return Math.max(0, cost + costModifier);
+    }
+
+    // 광대
+    public boolean isCloned = false;
+    public boolean isHalfPower = false;
+
+    // 마법사
+    public float powerMultiplier = 1.0f;
+    public boolean isIllusion = false;
+
+    public Card copy() {
+        Card newCard = new Card(this.id, this.name, this.type, this.suit, this.cost, this.isExtinction);
+        newCard.isCloned = true;
+        return newCard;
     }
 
     public Card(String id, String name, ArcanaType type, Suit suit, int cost, boolean isExtinction) {

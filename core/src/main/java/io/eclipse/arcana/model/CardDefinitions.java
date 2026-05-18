@@ -1,6 +1,9 @@
 package io.eclipse.arcana.model;
 
 import com.badlogic.gdx.utils.Array;
+import io.eclipse.arcana.model.effect.BaseCardEffect;
+import io.eclipse.arcana.model.effect.MajorEffects;
+import io.eclipse.arcana.model.effect.MinorEffects;
 
 public class CardDefinitions {
 
@@ -51,6 +54,124 @@ public class CardDefinitions {
         cards.add(minor(suit, suitName + "/Queen",  "Queen",  4));
         cards.add(minor(suit, suitName + "/King",   "King",   4));
         return cards;
+    }
+
+    public static BaseCardEffect getMajorEffect(String id) {
+        if (id == null || id.contains("/")) return null;
+
+        switch (id) {
+            case "Fool":     return new MajorEffects.Fool();
+            case "Magician": return new MajorEffects.Magician();
+            case "Priestess": return new MajorEffects.Priestness();
+            case "Priestness": return new MajorEffects.Priestness();
+            case "Empress":  return new MajorEffects.Empress();
+            case "Emperor":  return new MajorEffects.Emperor();
+            case "Hierophant": return new MajorEffects.Hierophant();
+            case "Lovers":   return new MajorEffects.Lovers();
+            case "Chariot":  return new MajorEffects.Chariot();
+            case "Strength": return new MajorEffects.Strength();
+            case "Hermit":   return new MajorEffects.Hermit();
+            case "Fortune":  return new MajorEffects.Fortune();
+            case "Justice":  return new MajorEffects.Justice();
+            case "HangedMan": return new MajorEffects.HangedMan();
+            case "Death":    return new MajorEffects.Death();
+            case "Temperance": return new MajorEffects.Temperance();
+            case "Devil":    return new MajorEffects.Devil();
+            case "Tower":    return new MajorEffects.Tower();
+            case "Star":     return new MajorEffects.Star();
+            case "Moon":     return new MajorEffects.Moon();
+            case "Sun":      return new MajorEffects.Sun();
+            case "Judgement": return new MajorEffects.Judgement();
+            case "World":    return new MajorEffects.World();
+            default:         return null;
+        }
+    }
+
+    public static BaseCardEffect getMinorEffect(String id) {
+        if (id == null || !id.contains("/")) return null;
+
+        String[] parts = id.split("/");
+        String suit = parts[0]; // "Wands", "Cups", "Swords", "Pentacles"
+        String rank = parts[1]; // "Ace", "Two", "Three" ... "King"
+
+        switch (suit) {
+            case "Wands":
+                switch (rank) {
+                    case "Ace":    return new MinorEffects.Wands.Ace();
+                    case "Two":    return new MinorEffects.Wands.Two();
+                    case "Three":  return new MinorEffects.Wands.Three();
+                    case "Four":   return new MinorEffects.Wands.Four();
+                    case "Five":   return new MinorEffects.Wands.Five();
+                    case "Six":    return new MinorEffects.Wands.Six();
+                    case "Seven":  return new MinorEffects.Wands.Seven();
+                    case "Eight":  return new MinorEffects.Wands.Eight();
+                    case "Nine":   return new MinorEffects.Wands.Nine();
+                    case "Ten":    return new MinorEffects.Wands.Ten();
+                    case "Page":   return new MinorEffects.Wands.Page();
+                    case "Knight": return new MinorEffects.Wands.Knight();
+                    case "Queen":  return new MinorEffects.Wands.Queen();
+                    case "King":   return new MinorEffects.Wands.King();
+                }
+                break;
+
+            case "Cups":
+                switch (rank) {
+                    case "Ace":    return new MinorEffects.Cups.Ace();
+                    case "Two":    return new MinorEffects.Cups.Two();
+                    case "Three":  return new MinorEffects.Cups.Three();
+                    case "Four":   return new MinorEffects.Cups.Four();
+                    case "Five":   return new MinorEffects.Cups.Five();
+                    case "Six":    return new MinorEffects.Cups.Six();
+                    case "Seven":  return new MinorEffects.Cups.Seven();
+                    case "Eight":  return new MinorEffects.Cups.Eight();
+                    case "Nine":   return new MinorEffects.Cups.Nine();
+                    case "Ten":    return new MinorEffects.Cups.Ten();
+                    case "Page":   return new MinorEffects.Cups.Page();
+                    case "Knight": return new MinorEffects.Cups.Knight();
+                    case "Queen":  return new MinorEffects.Cups.Queen();
+                    case "King":   return new MinorEffects.Cups.King();
+                }
+                break;
+
+            case "Swords":
+                switch (rank) {
+                    case "Ace":    return new MinorEffects.Swords.Ace();
+                    case "Two":    return new MinorEffects.Swords.Two();
+                    case "Three":  return new MinorEffects.Swords.Three();
+                    case "Four":   return new MinorEffects.Swords.Four();
+                    case "Five":   return new MinorEffects.Swords.Five();
+                    case "Six":    return new MinorEffects.Swords.Six();
+                    case "Seven":  return new MinorEffects.Swords.Seven();
+                    case "Eight":  return new MinorEffects.Swords.Eight();
+                    case "Nine":   return new MinorEffects.Swords.Nine();
+                    case "Ten":    return new MinorEffects.Swords.Ten();
+                    case "Page":   return new MinorEffects.Swords.Page();
+                    case "Knight": return new MinorEffects.Swords.Knight();
+                    case "Queen":  return new MinorEffects.Swords.Queen();
+                    case "King":   return new MinorEffects.Swords.King();
+                }
+                break;
+
+            case "Pentacles":
+                switch (rank) {
+                    case "Ace":    return new MinorEffects.Pentacles.Ace();
+                    case "Two":    return new MinorEffects.Pentacles.Two();
+                    case "Three":  return new MinorEffects.Pentacles.Three();
+                    case "Four":   return new MinorEffects.Pentacles.Four();
+                    case "Five":   return new MinorEffects.Pentacles.Five();
+                    case "Six":    return new MinorEffects.Pentacles.Six();
+                    case "Seven":  return new MinorEffects.Pentacles.Seven();
+                    case "Eight":  return new MinorEffects.Pentacles.Eight();
+                    case "Nine":   return new MinorEffects.Pentacles.Nine();
+                    case "Ten":    return new MinorEffects.Pentacles.Ten();
+                    case "Page":   return new MinorEffects.Pentacles.Page();
+                    case "Knight": return new MinorEffects.Pentacles.Knight();
+                    case "Queen":  return new MinorEffects.Pentacles.Queen();
+                    case "King":   return new MinorEffects.Pentacles.King();
+                }
+                break;
+        }
+        return null;
     }
 
     private static Card major(String id, String name, int cost, boolean isExtinction) {
