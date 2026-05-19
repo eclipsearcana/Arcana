@@ -32,11 +32,11 @@ public class ArcanaAssets {
         String bg = "ui/Game_Background.png";
         if (fileExists(bg)) manager.load(bg, Texture.class);
 
-        // ── 뒷면 일러스트 ─────────────────────────────────────────────────────
+        // 뒷면 일러스트
         String back = "cards/back.png";
         if (fileExists(back)) manager.load(back, Texture.class);
 
-        // ── Major 일러스트 ───────────────────────────────────────────────────
+        // 메이저 카드 일러스트
         for (String id : MAJOR_IDS) {
             String png = "cards/major/" + id + ".png";
             String jpg = "cards/major/" + id + ".jpg";
@@ -58,7 +58,7 @@ public class ArcanaAssets {
         String magicianIllusion = "cards/major/Cost/Magician_Illusion.png";
         if (fileExists(magicianIllusion)) manager.load(magicianIllusion, Texture.class);
 
-        // ── Minor 일러스트 ───────────────────────────────────────────────────
+        // 마이너 카드 일러스트
         for (Suit suit : SUITS) {
             String suitName = cap(suit.name());
             for (String rank : MINOR_RANKS) {
@@ -68,12 +68,12 @@ public class ArcanaAssets {
                 else if (fileExists(jpg)) manager.load(jpg, Texture.class);
             }
 
-            // ── Minor 코스트 (수트+코스트 숫자 조합, 1~4) ───────────────────
+            // 마이너 카드 코스트 이러스트
             for (int cost = 1; cost <= 4; cost++) {
                 String costPath = "cards/minor/Cost/" + suitName + "_" + cost + ".png";
                 if (fileExists(costPath)) manager.load(costPath, Texture.class);
 
-                // 역방향 코스트는 4만 있음
+                // 역방향 코스트는 4만 존재함
                 if (cost == 4) {
                     String revPath = "cards/minor/Cost/" + suitName + "_4_Reverse.png";
                     if (fileExists(revPath)) manager.load(revPath, Texture.class);
@@ -92,8 +92,7 @@ public class ArcanaAssets {
         manager.finishLoading();
     }
 
-    // ── 텍스처 반환 ───────────────────────────────────────────────────────────
-
+    // 텍스쳐 반환
     public Texture cardIllust(Card card) {
         if (card.type == Card.ArcanaType.MAJOR) {
             return getLoaded("cards/major/" + card.id + ".png",
@@ -152,9 +151,7 @@ public class ArcanaAssets {
         manager.dispose();
     }
 
-    // ── 내부 유틸 ─────────────────────────────────────────────────────────────
-
-    // png 먼저, 없으면 jpg
+    // png -> jpg 순차 로드
     private Texture getLoaded(String png, String jpg) {
         if (manager.isLoaded(png)) return manager.get(png, Texture.class);
         if (manager.isLoaded(jpg)) return manager.get(jpg, Texture.class);

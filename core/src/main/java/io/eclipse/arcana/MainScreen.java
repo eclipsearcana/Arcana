@@ -95,11 +95,11 @@ public class MainScreen implements Screen {
     private final Vector2 touch = new Vector2();
     private final Vector2 mouse  = new Vector2();
 
-    // ── 호버 상태 ─────────────────────────────────────────────────────────────
+    // 호버 상태
     private int hoveredIndex = -1;
     private final float[] hoverAnims = new float[10];
 
-    // ── 카드 사용 애니메이션 상태 ─────────────────────────────────────────────
+    // 카드 사용 애니메이션 상태
     private Card  playingCard    = null;
     private float playStartX, playStartY;
     private float playProgress   = 0f;
@@ -192,7 +192,7 @@ public class MainScreen implements Screen {
         }
     }
 
-    // ── 카드 사용 애니메이션 업데이트 ────────────────────────────────────────
+    // 카드 사용 애니메이션 업데이트
     // playProgress를 0→1로 증가, 1 되면 필드에 카드 배치 후 초기화
     private void updatePlayAnim(float delta) {
         if (playingCard == null) return;
@@ -215,14 +215,14 @@ public class MainScreen implements Screen {
         }
     }
 
-    // ── 핸드 위치 계산 ────────────────────────────────────────────────────────
+    // 핸드 위치 계산
     private float handStartX(int count) {
         float totalWidth = count * CardRenderer.CARD_W
             + Math.max(0, count - 1) * GAP;
         return 800f - totalWidth / 2f;
     }
 
-    // ── 특정 좌표가 핸드의 몇 번째 카드인지 반환 (-1이면 없음) ────────────────
+    // 특정 좌표가 핸드의 몇 번째 카드인지 반환 (-1이면 없음)
     private int getHandIndexAt(Array<Card> hand, float baseY, float wx, float wy) {
         float startX = handStartX(hand.size);
         // 뒤에서부터 체크 — 앞 카드가 위에 그려지므로 앞 카드 우선
@@ -236,7 +236,7 @@ public class MainScreen implements Screen {
         return -1;
     }
 
-    // ── Shape 패스 ────────────────────────────────────────────────────────────
+    // Shape 패스
     private void drawHandShapes(Array<Card> hand, float baseY, boolean isBack) {
         float startX = handStartX(hand.size);
         for (int i = 0; i < hand.size; i++) {
@@ -254,7 +254,7 @@ public class MainScreen implements Screen {
         }
     }
 
-    // ── Batch 패스 ────────────────────────────────────────────────────────────
+    // Batch 패스
     private void drawHandBatch(Array<Card> hand, float baseY, boolean isBack) {
         float startX = handStartX(hand.size);
         Texture back = assets.cardBack();
@@ -381,7 +381,7 @@ public class MainScreen implements Screen {
         }
     }
 
-    // ── 날아가는 카드 렌더 ────────────────────────────────────────────────────
+    // 날아가는 카드 렌더
     private void drawPlayingCard() {
         if (playingCard == null) return;
 
@@ -420,14 +420,14 @@ public class MainScreen implements Screen {
         }
     }
 
-    // ── 호버 리프트 값 반환 ───────────────────────────────────────────────────
+    // 호버 리프트 값 반환
     // i번째 카드의 현재 hoverAnim 값으로 Y 오프셋 계산
     private float hoverLift(int i) {
         if (i >= hoverAnims.length) return 0f;
         return hoverAnims[i] * HOVER_LIFT;
     }
 
-    // ── 코스트 사이즈 ─────────────────────────────────────────────────────────
+    // 코스트 사이즈
     private float costSize(Card card) {
         if (card.type == Card.ArcanaType.MAJOR) return 48f;
         switch (card.cost) {
@@ -439,7 +439,7 @@ public class MainScreen implements Screen {
         }
     }
 
-    // ── 버튼 렌더링 ───────────────────────────────────────────────────────────
+    // 버튼 렌더링
     private void drawButtonShapes() {
         if (showDebugPanel) {
             shape.setColor(COL_PANEL_BG);
@@ -486,7 +486,7 @@ public class MainScreen implements Screen {
             r.y + (r.height + gl.height) / 2f);
     }
 
-    // ── HUD / 게임오버 ────────────────────────────────────────────────────────
+    // HUD
     private void drawGameOver() {
         fonts.title.setColor(1f, 0.84f, 0f, 1f);
         String msg = "Player " + state.winnerIndex + " Wins!";
@@ -559,7 +559,7 @@ public class MainScreen implements Screen {
         return count;
     }
 
-    // ── 입력 처리 ─────────────────────────────────────────────────────────────
+    // 입력 처리
     private void handleClick() {
         boolean left  = Gdx.input.justTouched();
         boolean right = Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT);
@@ -626,7 +626,7 @@ public class MainScreen implements Screen {
         }
     }
 
-    // ── 생명주기 ──────────────────────────────────────────────────────────────
+    // Lifecycle
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);

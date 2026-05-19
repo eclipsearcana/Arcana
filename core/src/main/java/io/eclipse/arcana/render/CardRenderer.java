@@ -30,11 +30,10 @@ public class CardRenderer {
 
     private static final GlyphLayout LAYOUT = new GlyphLayout();
 
-    // ── 앞면 렌더 (텍스처 있으면 이미지, 없으면 shape fallback) ───────────────
+    // 앞면 렌더
 
     /**
-     * 카드 전체 렌더 — shape + text 통합 진입점
-     * 텍스처 없을 때 사용 (기존 방식 유지)
+     * 카드 전체 렌더
      */
     public static void draw(ShapeRenderer sr, SpriteBatch batch, BitmapFont font,
                             Card card, float x, float y) {
@@ -89,7 +88,7 @@ public class CardRenderer {
         }
     }
 
-    // ── Shape 렌더 ────────────────────────────────────────────────────────────
+    // Shape 렌더
 
     /**
      * Shape Renderer
@@ -143,7 +142,7 @@ public class CardRenderer {
         sr.rect(x + 11, y + 11, CARD_W - 22, CARD_H - 22);
     }
 
-    // ── 텍스트 렌더 ───────────────────────────────────────────────────────────
+    // 텍스트 렌더
 
     /**
      * 카드 앞면 텍스트 — shape fallback일 때 사용
@@ -185,7 +184,7 @@ public class CardRenderer {
         font.setColor(Color.WHITE);
     }
 
-    // ── 내부 유틸 ─────────────────────────────────────────────────────────────
+    // 내부 유틸
 
     private static Color borderColor(Card card) {
         if (card.type == Card.ArcanaType.MAJOR) return COL_MAJOR;

@@ -32,7 +32,7 @@ public class GameState {
     public int roundCount = 0;
 
     public GameState() {
-        setupTest(Suit.PENTACLES);
+        setupTest(Suit.SWORDS);
     }
 
     public static void applyReverseChance(Card card) {
@@ -86,6 +86,8 @@ public class GameState {
     public void setupTest(Suit suit) {
         for (int i = 0; i < players.length; i++) {
             Player p = players[i];
+
+            // 초기 세팅값
             p.hp = GameConfig.PLAYER_HP_START;
             p.cost = GameConfig.COST_DEFAULT_INIT;
             p.costInit = GameConfig.COST_DEFAULT_INIT;
