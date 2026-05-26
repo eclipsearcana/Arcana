@@ -62,7 +62,6 @@ public class CardDefinitions {
         switch (id) {
             case "Fool":     return new MajorEffects.Fool();
             case "Magician": return new MajorEffects.Magician();
-            case "Priestess": return new MajorEffects.Priestness();
             case "Priestness": return new MajorEffects.Priestness();
             case "Empress":  return new MajorEffects.Empress();
             case "Emperor":  return new MajorEffects.Emperor();

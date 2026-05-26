@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
@@ -41,6 +42,14 @@ public class MainScreen implements Screen {
     private static final float FIELD_P0_Y = GameConfig.FIELD_P0_Y;
     private static final float FIELD_P1_Y = GameConfig.FIELD_P1_Y;
 
+    private static final float GRAVE_X = 1085f;
+    private static final float GRAVE_P0_Y = 245f;
+    private static final float GRAVE_P1_Y = 575f;
+    private static final float GRAVE_W = 270f;
+    private static final float GRAVE_H = 130f;
+    private static final float GRAVE_CARD_SCALE = 0.32f;
+    private static final float GRAVE_CARD_GAP = 8f;
+
     // 호버
     private static final float HOVER_LIFT = GameConfig.HOVER_LIFT;
     private static final float HOVER_SPEED = GameConfig.HOVER_SPEED;
@@ -50,6 +59,7 @@ public class MainScreen implements Screen {
     private static final float PLAY_TARGET_Y = GameConfig.PLAY_TARGET_Y;
     private static final float PLAY_SPEED = GameConfig.PLAY_SPEED;
     private static final float DRAW_SPEED = GameConfig.DRAW_SPEED;
+    private static final float BURIAL_SPEED = 2.4f;
 
     // 버튼
     private static final float BTN_W = GameConfig.BTN_W;
@@ -57,25 +67,22 @@ public class MainScreen implements Screen {
     private static final float BTN_X = GameConfig.BTN_X;
 
     private Card  drawingCard    = null;
+    private int   drawingOwnerIndex = -1;
     private float drawProgress   = 0f;
+    private float drawStartX, drawStartY;
     private float drawEndX, drawEndY;
-
-    private boolean showDebugPanel = false;
 
     private static final Color COL_BTN_NORMAL = new Color(0.15f, 0.15f, 0.25f, 1f);
     private static final Color COL_BTN_DANGER = new Color(0.25f, 0.08f, 0.08f, 1f);
     private static final Color COL_BTN_OK     = new Color(0.10f, 0.30f, 0.10f, 1f);
     private static final Color COL_BTN_BORDER = new Color(0.7f,  0.6f,  0.2f,  1f);
+    private static final Color COL_GRAVE_BG = new Color(0.04f, 0.04f, 0.06f, 0.68f);
+    private static final Color COL_GRAVE_BORDER = new Color(0.38f, 0.33f, 0.22f, 0.85f);
 
     // DEBUG PANEL
     private static final float PANEL_X     = 1390f;
     private static final float PANEL_Y     = 380f;
     private static final float PANEL_W     = 180f;
-    private static final float PANEL_H     = 400f;
-    private static final float PANEL_PAD   = 10f;
-    private static final Color COL_PANEL_BG     = new Color(0.08f, 0.08f, 0.12f, 0.85f);
-    private static final Color COL_PANEL_BORDER = new Color(0.7f,  0.6f,  0.2f,  1f);
-    private static final Color COL_SECTION      = new Color(0.5f,  0.45f, 0.2f,  1f);
 
     private final Rectangle btnDraw    = new Rectangle(PANEL_X + 5f, PANEL_Y - 50f,  PANEL_W - 10f, BTN_H);
     private final Rectangle btnPhase   = new Rectangle(PANEL_X + 5f, PANEL_Y - 95f,  PANEL_W - 10f, BTN_H);
@@ -83,6 +90,7 @@ public class MainScreen implements Screen {
     private final Rectangle btnRestart = new Rectangle(PANEL_X + 5f, PANEL_Y - 185f, PANEL_W - 10f, BTN_H);
 
     private final Core game;
+    private final DebugContext debugContext;
 
     private SpriteBatch   batch;
     private ShapeRenderer shape;
@@ -101,11 +109,36 @@ public class MainScreen implements Screen {
 
     // 카드 사용 애니메이션 상태
     private Card  playingCard    = null;
+    private int   playingOwnerIndex = -1;
+    private boolean playingCardLandsInField = false;
     private float playStartX, playStartY;
+    private float playEndX, playEndY;
+    private float playStartScale = 1f, playEndScale = 1f;
     private float playProgress   = 0f;
+    private final Array<BurialAnimation> burialAnims = new Array<>();
+
+    private static class BurialAnimation {
+        final Card card;
+        final int ownerIndex;
+        final float startX, startY;
+        float endX, endY;
+        float progress;
+
+        BurialAnimation(Card card, int ownerIndex, float startX, float startY) {
+            this.card = card;
+            this.ownerIndex = ownerIndex;
+            this.startX = startX;
+            this.startY = startY;
+        }
+    }
 
     public MainScreen(Core game) {
+        this(game, null);
+    }
+
+    public MainScreen(Core game, DebugContext debugContext) {
         this.game = game;
+        this.debugContext = debugContext;
     }
 
     @Override
@@ -120,11 +153,21 @@ public class MainScreen implements Screen {
         assets.finishLoading();
 
         state = new GameState();
+        if (debugContext != null) {
+            debugContext.setState(state);
+        }
     }
 
     @Override
     public void render(float delta) {
+        processDebugCommands();
+        int beforePlayerIndex = state.currentPlayerIndex;
+        TurnPhase beforeTurnPhase = state.turnPhase;
+        int beforeHandSize = state.players[beforePlayerIndex].hand.size;
+        Array<BurialAnimation> pendingBurials = captureBurialAnimationStarts(beforePlayerIndex, beforeTurnPhase);
         state.update(delta);
+        startBurialAnimationsAfterPhaseAdvance(beforePlayerIndex, beforeTurnPhase, pendingBurials);
+        startDrawAnimationAfterPhaseAdvance(beforePlayerIndex, beforeTurnPhase, beforeHandSize);
 
         mouse.set(Gdx.input.getX(), Gdx.input.getY());
         viewport.unproject(mouse);
@@ -132,10 +175,7 @@ public class MainScreen implements Screen {
         updateHover(delta);
         updatePlayAnim(delta);
         updateDrawAnim(delta);
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.TAB)) {
-            showDebugPanel = !showDebugPanel;
-        }
+        updateBurialAnims(delta);
 
         handleClick();
 
@@ -159,21 +199,46 @@ public class MainScreen implements Screen {
         shape.begin(ShapeRenderer.ShapeType.Filled);
         drawHandShapes(state.players[0].hand, HAND0_Y, false);
         drawHandShapes(state.players[1].hand, HAND1_Y, true);
+        drawGraveyardZoneShapes();
         drawButtonShapes();
         shape.end();
 
         batch.begin();
         drawDeck();
         drawField();
+        drawGraveyards();
         drawDrawingCard();
         drawHandBatch(state.players[0].hand, HAND0_Y, false);
         drawHandBatch(state.players[1].hand, HAND1_Y, true);
         drawPlayingCard();
+        drawBurialAnimations();
         drawHud();
         if (state.phase == GamePhase.GAME_OVER) drawGameOver();
         batch.end();
 
         Gdx.gl.glDisable(GL20.GL_BLEND);
+    }
+
+    private void processDebugCommands() {
+        if (debugContext == null) return;
+
+        DebugCommand command;
+        while ((command = debugContext.pollCommand()) != null) {
+            switch (command) {
+                case DRAW_CURRENT:
+                    debugDrawCurrentCard();
+                    break;
+                case ADVANCE_PHASE:
+                    advanceTurnPhase();
+                    break;
+                case DAMAGE_OPPONENT:
+                    damageOpponent(25);
+                    break;
+                case RESTART:
+                    restartGame();
+                    break;
+            }
+        }
     }
 
     private void updateHover(float delta) {
@@ -202,6 +267,8 @@ public class MainScreen implements Screen {
             // 애니메이션 완료 — 지금은 그냥 제거 (나중에 필드 배치 로직 연결)
             playProgress  = 1f;
             playingCard   = null;
+            playingOwnerIndex = -1;
+            playingCardLandsInField = false;
             playProgress  = 0f;
         }
     }
@@ -211,7 +278,18 @@ public class MainScreen implements Screen {
         drawProgress += DRAW_SPEED * delta;
         if (drawProgress >= 1f) {
             drawingCard = null;
+            drawingOwnerIndex = -1;
             drawProgress = 0f;
+        }
+    }
+
+    private void updateBurialAnims(float delta) {
+        for (int i = burialAnims.size - 1; i >= 0; i--) {
+            BurialAnimation anim = burialAnims.get(i);
+            anim.progress += BURIAL_SPEED * delta;
+            if (anim.progress >= 1f) {
+                burialAnims.removeIndex(i);
+            }
         }
     }
 
@@ -220,6 +298,54 @@ public class MainScreen implements Screen {
         float totalWidth = count * CardRenderer.CARD_W
             + Math.max(0, count - 1) * GAP;
         return 800f - totalWidth / 2f;
+    }
+
+    private float handCardCenterX(int count, int index) {
+        return handStartX(count)
+            + index * (CardRenderer.CARD_W + GAP)
+            + CardRenderer.CARD_W / 2f;
+    }
+
+    private float handCardCenterY(float baseY, int index) {
+        return baseY + hoverLift(index) + CardRenderer.CARD_H / 2f;
+    }
+
+    private float fieldCardCenterX(Array<Card> field, int index) {
+        float totalWidth = field.size * FIELD_CARD_W
+            + Math.max(0, field.size - 1) * FIELD_GAP;
+        float fieldMaxLean = 18f;
+        float startX = 800f - totalWidth / 2f - fieldMaxLean / 2f;
+        return startX + index * (FIELD_CARD_W + FIELD_GAP) + FIELD_CARD_W / 2f;
+    }
+
+    private float graveyardCardCenterX(Player player, int ownerIndex, Card card) {
+        float cardW = CardRenderer.CARD_W * GRAVE_CARD_SCALE;
+        int index = graveyardIndexOf(player, card);
+        float x = GRAVE_X;
+        if (index >= 0 && index < 4) {
+            return x + 12f + index * (cardW + GRAVE_CARD_GAP) + cardW / 2f;
+        }
+        return x + GRAVE_W - 30f;
+    }
+
+    private float graveyardCardCenterY(int ownerIndex, Card card) {
+        float cardH = CardRenderer.CARD_H * GRAVE_CARD_SCALE;
+        float y = ownerIndex == 1 ? GRAVE_P1_Y : GRAVE_P0_Y;
+        return y + 14f + cardH / 2f;
+    }
+
+    private int graveyardIndexOf(Player player, Card target) {
+        for (int i = 0; i < player.graveyard.size; i++) {
+            if (player.graveyard.get(i).card == target) return i;
+        }
+        return -1;
+    }
+
+    private int indexOfIdentity(Array<Card> cards, Card target) {
+        for (int i = 0; i < cards.size; i++) {
+            if (cards.get(i) == target) return i;
+        }
+        return -1;
     }
 
     // 특정 좌표가 핸드의 몇 번째 카드인지 반환 (-1이면 없음)
@@ -240,6 +366,9 @@ public class MainScreen implements Screen {
     private void drawHandShapes(Array<Card> hand, float baseY, boolean isBack) {
         float startX = handStartX(hand.size);
         for (int i = 0; i < hand.size; i++) {
+            Card card = hand.get(i);
+            if (isCardHiddenInHand(card)) continue;
+
             float x = startX + i * (CardRenderer.CARD_W + GAP);
             // 호버 리프트 적용 (P0 핸드만)
             float y = baseY + (isBack ? 0 : hoverLift(i));
@@ -248,8 +377,8 @@ public class MainScreen implements Screen {
                 Texture back = assets.cardBack();
                 if (back == null) CardRenderer.drawBack(shape, x, y);
             } else {
-                Texture illust = assets.cardIllust(hand.get(i));
-                if (illust == null) CardRenderer.drawShape(shape, hand.get(i), x, y);
+                Texture illust = assets.cardIllust(card);
+                if (illust == null) CardRenderer.drawShape(shape, card, x, y);
             }
         }
     }
@@ -263,6 +392,7 @@ public class MainScreen implements Screen {
             float x = startX + i * (CardRenderer.CARD_W + GAP);
             float y = baseY + (isBack ? 0 : hoverLift(i));
             Card  card = hand.get(i);
+            if (isCardHiddenInHand(card)) continue;
 
             if (isBack) {
                 if (back != null) CardRenderer.drawIllust(batch, back, x, y, card.reversed);
@@ -339,11 +469,98 @@ public class MainScreen implements Screen {
     }
 
     private void drawField() {
-        drawPlayerField(state.players[0].field, FIELD_P0_Y);  // P0 아래
-        drawPlayerField(state.players[1].field, FIELD_P1_Y);  // P1 위
+        drawPlayerField(state.players[0].field, FIELD_P0_Y, 0);  // P0 아래
+        drawPlayerField(state.players[1].field, FIELD_P1_Y, 1);  // P1 위
     }
 
-    private void drawPlayerField(Array<Card> field, float baseY) {
+    private void drawGraveyardZoneShapes() {
+        drawGraveyardZoneShape(GRAVE_X, GRAVE_P0_Y);
+        drawGraveyardZoneShape(GRAVE_X, GRAVE_P1_Y);
+    }
+
+    private void drawGraveyardZoneShape(float x, float y) {
+        shape.setColor(COL_GRAVE_BORDER);
+        shape.rect(x, y, GRAVE_W, GRAVE_H);
+        shape.setColor(COL_GRAVE_BG);
+        shape.rect(x + 2f, y + 2f, GRAVE_W - 4f, GRAVE_H - 4f);
+    }
+
+    private void drawGraveyards() {
+        drawPlayerGraveyard(state.players[0], "P0 무덤", GRAVE_X, GRAVE_P0_Y);
+        drawPlayerGraveyard(state.players[1], "P1 무덤", GRAVE_X, GRAVE_P1_Y);
+    }
+
+    private void drawPlayerGraveyard(Player player, String label, float x, float y) {
+        fonts.small.setColor(0.82f, 0.76f, 0.62f, 1f);
+        fonts.small.draw(batch, label + " " + player.graveyard.size, x + 10f, y + GRAVE_H - 10f);
+
+        float cardW = CardRenderer.CARD_W * GRAVE_CARD_SCALE;
+        float cardH = CardRenderer.CARD_H * GRAVE_CARD_SCALE;
+        float cardX = x + 12f;
+        float cardY = y + 14f;
+        int shown = 0;
+        int drawableCount = countDrawableGraveyardCards(player);
+        for (int i = 0; i < player.graveyard.size && shown < 4; i++) {
+            GameState.GraveyardCard buried = player.graveyard.get(i);
+            if (isCardBeingBuried(buried.card)) continue;
+
+            drawGraveyardCard(buried.card, cardX + shown * (cardW + GRAVE_CARD_GAP), cardY, cardW, cardH);
+            fonts.small.setColor(1f, 0.92f, 0.68f, 1f);
+            fonts.small.draw(batch, String.valueOf(buried.turnsRemaining),
+                cardX + shown * (cardW + GRAVE_CARD_GAP) + cardW - 12f,
+                cardY + cardH - 6f);
+            shown++;
+        }
+
+        if (drawableCount > shown) {
+            fonts.small.setColor(0.75f, 0.72f, 0.66f, 1f);
+            fonts.small.draw(batch, "+" + (drawableCount - shown),
+                x + GRAVE_W - 42f, y + 24f);
+        }
+        fonts.small.setColor(Color.WHITE);
+    }
+
+    private int countDrawableGraveyardCards(Player player) {
+        int count = 0;
+        for (GameState.GraveyardCard buried : player.graveyard) {
+            if (!isCardBeingBuried(buried.card)) count++;
+        }
+        return count;
+    }
+
+    private void drawGraveyardCard(Card card, float x, float y, float w, float h) {
+        Texture tex = assets.cardIllust(card);
+        if (tex == null) tex = assets.cardBack();
+        if (tex == null) return;
+
+        batch.setColor(0.68f, 0.68f, 0.72f, 0.78f);
+        batch.draw(tex,
+            x, y, w, h,
+            0, 0, tex.getWidth(), tex.getHeight(),
+            false, card.shouldFlipIllust());
+        batch.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private void drawBurialAnimations() {
+        for (BurialAnimation anim : burialAnims) {
+            float p = MathUtils.clamp(anim.progress, 0f, 1f);
+            float t = Interpolation.smoother.apply(p);
+            float arc = MathUtils.sin(p * MathUtils.PI) * 45f;
+            float cx = anim.startX + (anim.endX - anim.startX) * t;
+            float cy = anim.startY + (anim.endY - anim.startY) * t + arc;
+            float scale = GameConfig.FIELD_SCALE + (GRAVE_CARD_SCALE - GameConfig.FIELD_SCALE) * t;
+            float alpha = 1f - 0.18f * t;
+            float direction = anim.ownerIndex == 1 ? -1f : 1f;
+            float rotation = direction * MathUtils.sin(p * MathUtils.PI) * 7f;
+
+            drawMovingCard(anim.card, cx, cy,
+                CardRenderer.CARD_W * scale,
+                CardRenderer.CARD_H * scale,
+                rotation, true, alpha);
+        }
+    }
+
+    private void drawPlayerField(Array<Card> field, float baseY, int ownerIndex) {
         if (field.isEmpty()) return;
 
         float totalWidth = field.size * FIELD_CARD_W
@@ -356,6 +573,7 @@ public class MainScreen implements Screen {
             float x = startX + i * (FIELD_CARD_W + FIELD_GAP);
             float y = baseY - FIELD_CARD_H / 2f;
             Card card = field.get(i);
+            if (isCardHiddenInField(card, ownerIndex)) continue;
 
             float cardCenterX = x + FIELD_CARD_W / 2f;
             float distFromCenter = (cardCenterX - centerX) / (totalWidth / 2f + 1f);
@@ -385,39 +603,80 @@ public class MainScreen implements Screen {
     private void drawPlayingCard() {
         if (playingCard == null) return;
 
-        // 보간으로 현재 위치 계산
-        float t  = Interpolation.swingOut.apply(playProgress);
-        float cx = playStartX + (PLAY_TARGET_X - playStartX) * t;
-        float cy = playStartY + (PLAY_TARGET_Y - playStartY) * t;
+        float p = MathUtils.clamp(playProgress, 0f, 1f);
+        float t = Interpolation.smoother.apply(p);
+        float arc = MathUtils.sin(p * MathUtils.PI) * 90f;
+        float cx = playStartX + (playEndX - playStartX) * t;
+        float cy = playStartY + (playEndY - playStartY) * t + arc;
 
-        float scale = 1f + 0.15f * (float) Math.sin(playProgress * Math.PI);
+        float scale = playStartScale + (playEndScale - playStartScale) * t;
+        scale += 0.08f * MathUtils.sin(p * MathUtils.PI);
         float w = CardRenderer.CARD_W * scale;
         float h = CardRenderer.CARD_H * scale;
 
-        Texture illust = assets.cardIllust(playingCard);
-        if (illust != null) {
-            // 중앙 기준으로 그리기 위해 offset 계산
-            batch.draw(illust, cx - w / 2f, cy - h / 2f, w, h);
-        }
+        float direction = playingOwnerIndex == 1 ? -1f : 1f;
+        float rotation = direction * MathUtils.sin(p * MathUtils.PI) * 5f;
+        drawMovingCard(playingCard, cx, cy, w, h, rotation, true, 1f);
     }
 
     private void drawDrawingCard() {
         if (drawingCard == null) return;
 
-        float t  = Interpolation.smooth.apply(drawProgress);
-        // 덱 중앙에서 핸드 끝으로
-        float cx = (DECK_X) + (drawEndX - DECK_X) * t;
-        float cy = (DECK_Y) + (drawEndY - DECK_Y) * t;
+        float p = MathUtils.clamp(drawProgress, 0f, 1f);
+        float t = Interpolation.smoother.apply(p);
+        float arc = MathUtils.sin(p * MathUtils.PI) * 55f;
+        float cx = drawStartX + (drawEndX - drawStartX) * t;
+        float cy = drawStartY + (drawEndY - drawStartY) * t + arc;
 
-        // 날아가면서 납작함 → 원래 크기로 복원
-        // 덱에서 나올 땐 납작하게, 핸드에 도착하면 원래 비율
         float h = DECK_H + (CardRenderer.CARD_H - DECK_H) * t;
-        float w = CardRenderer.CARD_W;
+        float w = DECK_W + (CardRenderer.CARD_W - DECK_W) * t;
 
-        Texture back = assets.cardBack();
-        if (back != null) {
-            batch.draw(back, cx - w / 2f, cy - h / 2f, w, h);
+        boolean reveal = drawingOwnerIndex == 0 && p >= 0.58f;
+        float flipWidth = 1f;
+        if (drawingOwnerIndex == 0) {
+            if (p < 0.58f) {
+                flipWidth = 1f - 0.82f * (p / 0.58f);
+            } else {
+                flipWidth = 0.18f + 0.82f * ((p - 0.58f) / 0.42f);
+            }
         }
+        drawMovingCard(drawingCard, cx, cy, w * flipWidth, h, 0f, reveal, 1f);
+    }
+
+    private void drawMovingCard(Card card, float cx, float cy, float w, float h,
+                                float rotation, boolean faceUp, float alpha) {
+        Texture tex = faceUp ? assets.cardIllust(card) : assets.cardBack();
+        if (tex == null) tex = assets.cardBack();
+        if (tex == null) return;
+
+        boolean flipY = faceUp && card.shouldFlipIllust();
+        batch.setColor(1f, 1f, 1f, alpha);
+        batch.draw(tex,
+            cx - w / 2f, cy - h / 2f,
+            w / 2f, h / 2f,
+            w, h,
+            1f, 1f,
+            rotation,
+            0, 0, tex.getWidth(), tex.getHeight(),
+            false, flipY);
+        batch.setColor(1f, 1f, 1f, 1f);
+    }
+
+    private boolean isCardHiddenInHand(Card card) {
+        return card == drawingCard || card == playingCard;
+    }
+
+    private boolean isCardHiddenInField(Card card, int ownerIndex) {
+        return playingCardLandsInField
+            && ownerIndex == playingOwnerIndex
+            && card == playingCard;
+    }
+
+    private boolean isCardBeingBuried(Card card) {
+        for (BurialAnimation anim : burialAnims) {
+            if (anim.card == card) return true;
+        }
+        return false;
     }
 
     // 호버 리프트 값 반환
@@ -441,16 +700,6 @@ public class MainScreen implements Screen {
 
     // 버튼 렌더링
     private void drawButtonShapes() {
-        if (showDebugPanel) {
-            shape.setColor(COL_PANEL_BG);
-            shape.rect(PANEL_X, PANEL_Y, PANEL_W, PANEL_H);
-            shape.setColor(COL_PANEL_BORDER);
-            shape.rect(PANEL_X, PANEL_Y, PANEL_W, 1f);
-            shape.rect(PANEL_X, PANEL_Y + PANEL_H, PANEL_W, 1f);
-            shape.rect(PANEL_X, PANEL_Y,1f, PANEL_H);
-            shape.rect(PANEL_X + PANEL_W - 1f, PANEL_Y, 1f, PANEL_H);
-        }
-
         if (state.phase == GamePhase.GAME_OVER) {
             drawBtn(btnRestart, COL_BTN_OK);
             return;
@@ -496,67 +745,154 @@ public class MainScreen implements Screen {
     }
 
     private void drawHud() {
-        if (showDebugPanel) {
-            // 패널 텍스트
-            float lx = PANEL_X + PANEL_PAD;
-            float ly = PANEL_Y + PANEL_H - PANEL_PAD;
-            float lh = 18f;  // 줄 간격
-
-            // 타이틀
-            fonts.small.setColor(COL_PANEL_BORDER);
-            fonts.small.draw(batch, "[ DEBUG ]", lx, ly);
-            ly -= lh * 1.5f;
-
-            // 구분선 역할 라벨
-            fonts.small.setColor(COL_SECTION);
-            fonts.small.draw(batch, "P0", lx, ly);
-            ly -= lh;
-
-            fonts.small.setColor(1f, 1f, 1f, 1f);
-            fonts.small.draw(batch, "HP: " + state.players[0].hp, lx, ly); ly -= lh;
-            fonts.small.draw(batch, "Cost: " + state.players[0].cost + "/" + state.players[0].costInit, lx, ly); ly -= lh;
-            fonts.small.draw(batch, "Reversed: " + countReversed(state.players[0]), lx, ly); ly -= lh;
-            fonts.small.draw(batch, "Field: " + state.players[0].field.size, lx, ly); ly -= lh * 1.5f;
-
-            fonts.small.setColor(COL_SECTION);
-            fonts.small.draw(batch, "P1", lx, ly);
-            ly -= lh;
-
-            fonts.small.setColor(1f, 1f, 1f, 1f);
-            fonts.small.draw(batch, "HP: " + state.players[1].hp, lx, ly); ly -= lh;
-            fonts.small.draw(batch, "Cost: " + state.players[1].cost + "/" + state.players[1].costInit, lx, ly); ly -= lh;
-            fonts.small.draw(batch, "Reversed: " + countReversed(state.players[1]), lx, ly); ly -= lh;
-            fonts.small.draw(batch, "Field: " + state.players[1].field.size, lx, ly); ly -= lh * 1.5f;
-
-            fonts.small.setColor(COL_SECTION);
-            fonts.small.draw(batch, "GAME", lx, ly);
-            ly -= lh;
-
-            fonts.small.setColor(1f, 1f, 1f, 1f);
-            fonts.small.draw(batch, "Phase: " + state.phase, lx, ly); ly -= lh;
-            fonts.small.draw(batch, "Turn: " + state.turnPhase, lx, ly); ly -= lh;
-            fonts.small.draw(batch, String.format("Timer: %.1fs", state.turnTimer), lx, ly); ly -= lh;
-            fonts.small.draw(batch, "Deck: " + state.currentPlayer().deck.size(), lx, ly); ly -= lh;
-            fonts.small.draw(batch, "Active: P" + state.currentPlayerIndex, lx, ly);
-
-            fonts.small.setColor(Color.WHITE);
-        }
-
-        // 버튼 라벨
         drawButtonLabels();
-
-        fonts.small.setColor(0.4f, 0.4f, 0.4f, 1f);
-        fonts.small.draw(batch, "[TAB] Debug", PANEL_X + PANEL_PAD, PANEL_Y - 195f);
-        fonts.small.setColor(Color.WHITE);
     }
 
-    // 역방향 카드 수 카운트
-    private int countReversed(Player player) {
-        int count = 0;
-        for (Card c : player.hand) {
-            if (c.reversed) count++;
+    private Array<BurialAnimation> captureBurialAnimationStarts(int ownerIndex, TurnPhase turnPhase) {
+        Array<BurialAnimation> animations = new Array<>();
+        if (turnPhase != TurnPhase.END || ownerIndex < 0 || ownerIndex >= state.players.length) {
+            return animations;
         }
-        return count;
+
+        Player owner = state.players[ownerIndex];
+        float startY = ownerIndex == 1 ? FIELD_P1_Y : FIELD_P0_Y;
+        for (int i = 0; i < owner.field.size; i++) {
+            Card card = owner.field.get(i);
+            animations.add(new BurialAnimation(
+                card,
+                ownerIndex,
+                fieldCardCenterX(owner.field, i),
+                startY));
+        }
+        return animations;
+    }
+
+    private void startBurialAnimationsAfterPhaseAdvance(int ownerIndex, TurnPhase previousTurnPhase,
+                                                        Array<BurialAnimation> animations) {
+        if (previousTurnPhase != TurnPhase.END || animations.size == 0) return;
+        if (state.phase != GamePhase.MAIN || state.currentPlayerIndex == ownerIndex) return;
+        startBurialAnimations(animations);
+    }
+
+    private void startBurialAnimations(Array<BurialAnimation> animations) {
+        for (BurialAnimation anim : animations) {
+            Player owner = state.players[anim.ownerIndex];
+            if (graveyardIndexOf(owner, anim.card) < 0) continue;
+
+            anim.endX = graveyardCardCenterX(owner, anim.ownerIndex, anim.card);
+            anim.endY = graveyardCardCenterY(anim.ownerIndex, anim.card);
+            anim.progress = 0f;
+            burialAnims.add(anim);
+        }
+    }
+
+    private void debugDrawCurrentCard() {
+        if (hasCardAnimation()) return;
+
+        Player player = state.currentPlayer();
+        if (player.hand.size >= GameConfig.HAND_MAX) return;
+
+        Card drawn = state.drawCard(player);
+        if (drawn == null) return;
+
+        startDrawAnimation(drawn, state.playerIndex(player));
+    }
+
+    private void advanceTurnPhase() {
+        if (hasCardAnimation()) return;
+
+        int playerIndex = state.currentPlayerIndex;
+        TurnPhase turnPhase = state.turnPhase;
+        int handSize = state.players[playerIndex].hand.size;
+        Array<BurialAnimation> pendingBurials = captureBurialAnimationStarts(playerIndex, turnPhase);
+        state.advanceTurnPhase();
+        startBurialAnimationsAfterPhaseAdvance(playerIndex, turnPhase, pendingBurials);
+        startDrawAnimationAfterPhaseAdvance(playerIndex, turnPhase, handSize);
+    }
+
+    private void startDrawAnimationAfterPhaseAdvance(int playerIndex, TurnPhase turnPhase, int handSize) {
+        if (hasCardAnimation()) return;
+        if (turnPhase != TurnPhase.DRAW) return;
+        if (state.phase != GamePhase.MAIN || state.turnPhase != TurnPhase.ACTION) return;
+        if (state.currentPlayerIndex != playerIndex) return;
+
+        Player player = state.players[playerIndex];
+        if (player.hand.size <= handSize) return;
+        startDrawAnimation(player.hand.get(player.hand.size - 1), playerIndex);
+    }
+
+    private void startDrawAnimation(Card drawn, int ownerIndex) {
+        if (drawn == null || ownerIndex < 0) return;
+
+        Player owner = state.players[ownerIndex];
+        int index = indexOfIdentity(owner.hand, drawn);
+        if (index < 0) return;
+
+        float handY = ownerIndex == 0 ? HAND0_Y : HAND1_Y;
+        drawingCard = drawn;
+        drawingOwnerIndex = ownerIndex;
+        drawProgress = 0f;
+        drawStartX = DECK_X;
+        drawStartY = DECK_Y;
+        drawEndX = handCardCenterX(owner.hand.size, index);
+        drawEndY = handY + CardRenderer.CARD_H / 2f;
+    }
+
+    private void startPlayAnimation(Card played, Player owner, int ownerIndex,
+                                    float startCenterX, float startCenterY) {
+        if (played == null) return;
+
+        playingCard = played;
+        playingOwnerIndex = ownerIndex;
+        playingCardLandsInField = false;
+        playStartX = startCenterX;
+        playStartY = startCenterY;
+        playEndX = PLAY_TARGET_X;
+        playEndY = PLAY_TARGET_Y;
+        playStartScale = 1f;
+        playEndScale = 1f;
+        playProgress = 0f;
+
+        int fieldIndex = indexOfIdentity(owner.field, played);
+        if (fieldIndex >= 0) {
+            playingCardLandsInField = true;
+            playEndX = fieldCardCenterX(owner.field, fieldIndex);
+            playEndY = ownerIndex == 1 ? FIELD_P1_Y : FIELD_P0_Y;
+            playEndScale = GameConfig.FIELD_SCALE;
+            return;
+        }
+
+        int handIndex = indexOfIdentity(owner.hand, played);
+        if (handIndex >= 0) {
+            float handY = ownerIndex == 1 ? HAND1_Y : HAND0_Y;
+            playEndX = handCardCenterX(owner.hand.size, handIndex);
+            playEndY = handY + CardRenderer.CARD_H / 2f;
+        }
+    }
+
+    private boolean hasCardAnimation() {
+        return drawingCard != null || playingCard != null || burialAnims.size > 0;
+    }
+
+    private void clearCardAnimations() {
+        drawingCard = null;
+        drawingOwnerIndex = -1;
+        drawProgress = 0f;
+        playingCard = null;
+        playingOwnerIndex = -1;
+        playingCardLandsInField = false;
+        playProgress = 0f;
+        burialAnims.clear();
+    }
+
+    private void damageOpponent(int amount) {
+        state.players[1 - state.currentPlayerIndex].hp -= amount;
+        state.checkWinCondition();
+    }
+
+    private void restartGame() {
+        clearCardAnimations();
+        state.setupTest(state.players[0].chosenSuit);
     }
 
     // 입력 처리
@@ -568,34 +904,23 @@ public class MainScreen implements Screen {
 
         if (state.phase == GamePhase.GAME_OVER) {
             if (left && btnRestart.contains(wx, wy))
-                state.setupTest(state.players[0].chosenSuit);
+                restartGame();
             return;
         }
 
+        if (hasCardAnimation()) return;
+
         if (left) {
             if (btnDraw.contains(wx, wy)) {
-                if (state.currentPlayer().hand.size < GameConfig.HAND_MAX) {
-                    Card drawn = state.drawCard(state.currentPlayer());
-                    if (drawn != null) {
-                        drawingCard = drawn;
-                        drawProgress = 0f;
-                        int handSize = Math.max(1, state.currentPlayer().hand.size);
-                        int nextIdx = handSize - 1;
-                        drawEndX = handStartX(handSize)
-                            + nextIdx * (CardRenderer.CARD_W + GAP)
-                            + CardRenderer.CARD_W / 2f;
-                        drawEndY = HAND0_Y + CardRenderer.CARD_H / 2f;
-                    }
-                }
+                debugDrawCurrentCard();
                 return;
             }
             if (btnPhase.contains(wx, wy)) {
-                state.advanceTurnPhase();
+                advanceTurnPhase();
                 return;
             }
             if (btnDebug.contains(wx, wy)) {
-                state.players[1 - state.currentPlayerIndex].hp -= 25;
-                state.checkWinCondition();
+                damageOpponent(25);
                 return;
             }
         }
@@ -608,21 +933,18 @@ public class MainScreen implements Screen {
         if (idx < 0) return;
 
         if (left) {
-            // 애니메이션 시작 — 카드 시작 위치 저장
-            float startX = handStartX(current.hand.size)
-                + idx * (CardRenderer.CARD_W + GAP);
-            float startY = handY + hoverLift(idx);
+            int ownerIndex = state.playerIndex(current);
+            float startCenterX = handCardCenterX(current.hand.size, idx);
+            float startCenterY = handCardCenterY(handY, idx);
 
             Card played = state.playCardFromHand(current, idx);
             if (played == null) return;
 
-            playingCard = played;
-            playStartX = startX + CardRenderer.CARD_W / 2f;  // 카드 중앙
-            playStartY = startY + CardRenderer.CARD_H / 2f;
-            playProgress = 0f;
+            startPlayAnimation(played, current, ownerIndex, startCenterX, startCenterY);
 
         } else {
-            current.hand.get(idx).reversed = !current.hand.get(idx).reversed;
+            Card card = current.hand.get(idx);
+            card.setReversed(!card.reversed, false);
         }
     }
 
@@ -638,6 +960,9 @@ public class MainScreen implements Screen {
 
     @Override
     public void dispose() {
+        if (debugContext != null) {
+            debugContext.clearState(state);
+        }
         batch.dispose();
         shape.dispose();
         fonts.dispose();

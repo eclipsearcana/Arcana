@@ -1,5 +1,7 @@
 package io.eclipse.arcana.model;
 
+import io.eclipse.arcana.GameConfig;
+
 public class Card {
 
     public enum ArcanaType { MAJOR, MINOR }
@@ -16,6 +18,32 @@ public class Card {
     public int costModifier = 0;
 
     public boolean reversed;
+    public int reverseGraceTurns = 0;
+
+    public void setReversed(boolean reversed, boolean grantGrace) {
+        this.reversed = reversed;
+        if (!reversed) {
+            reverseGraceTurns = 0;
+        } else {
+            reverseGraceTurns = grantGrace ? GameConfig.REVERSE_GRACE_TURNS : 0;
+        }
+    }
+
+    public void refreshReverseGrace() {
+        if (reversed) reverseGraceTurns = GameConfig.REVERSE_GRACE_TURNS;
+    }
+
+    public void tickReverseGrace() {
+        if (reversed && reverseGraceTurns > 0) reverseGraceTurns--;
+    }
+
+    public boolean isReverseGraceActive() {
+        return reversed && reverseGraceTurns > 0;
+    }
+
+    public boolean isReversePenaltyActive() {
+        return reversed && reverseGraceTurns <= 0;
+    }
 
     public boolean shouldFlipIllust() {
         if (!reversed) return false;

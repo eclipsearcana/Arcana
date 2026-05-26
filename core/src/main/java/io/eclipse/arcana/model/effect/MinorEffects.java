@@ -397,7 +397,7 @@ public class MinorEffects {
                 if (target.hand.size > 0) {
                     Card stolen = target.hand.removeIndex(new Random().nextInt(target.hand.size));
                     stolen.isRevealed = true;
-                    caster.hand.add(stolen);
+                    state.addTransferredCardToHand(caster, stolen);
                 }
             }
         }

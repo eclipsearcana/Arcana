@@ -25,14 +25,14 @@ public class MajorEffects {
                 clone.isHalfPower = true;
 
                 caster.hand.add(clone);
-                System.out.println("[광대] " + original.name + " 복제 완료 (0코스트)");
+                state.log("[광대] " + original.name + " 복제 완료 (0코스트)");
             }
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             caster.mustPlayNextDraw = true;
-            System.out.println("[광대 역방향] 다음 드로우 카드는 즉시 강제 사용.");
+            state.log("[광대 역방향] 다음 드로우 카드는 즉시 강제 사용.");
         }
     }
 
@@ -46,7 +46,7 @@ public class MajorEffects {
                 targetCard.costModifier = -targetCard.cost;
                 targetCard.powerMultiplier = 2.0f;
 
-                System.out.println("[마법사] " + targetCard.name + "와 계약했습니다.");
+                state.log("[마법사] " + targetCard.name + "와 계약했습니다.");
             }
         }
 
@@ -60,7 +60,7 @@ public class MajorEffects {
                 illusion.costModifier = -illusion.cost;
 
                 caster.hand.add(illusion);
-                System.out.println("[마법사 역방향] " + original.name + "의 환영을 생성했습니다.");
+                state.log("[마법사 역방향] " + original.name + "의 환영을 생성했습니다.");
             }
         }
     }
@@ -76,13 +76,13 @@ public class MajorEffects {
             }
 
             if (!preview.isEmpty()) {
-                caster.hand.add(preview.get(0));
+                state.addDrawnCardToHand(caster, preview.get(0));
                 for (int i = 1; i < preview.size(); i++) {
                     caster.deck.addBottom(preview.get(i));
                 }
             }
 
-            System.out.println("[여사제] 덱 상위 3장 중 1장 선택");
+            state.log("[여사제] 덱 상위 3장 중 1장 선택");
         }
 
         @Override
@@ -94,7 +94,7 @@ public class MajorEffects {
                 int idx = rand.nextInt(caster.hand.size);
                 Card revealed = caster.hand.get(idx);
                 revealed.isRevealed = true;
-                System.out.println("[여사제 역방향] 공개: " + revealed.name);
+                state.log("[여사제 역방향] 공개: " + revealed.name);
             }
         }
     }
@@ -105,13 +105,13 @@ public class MajorEffects {
         public void executeUpright(GameState state, Player caster, Player target) {
             int amount = Math.round(GameConfig.PLAYER_HP_START * 0.15f);
             heal(caster, amount);
-            System.out.println("[여황제] HP " + amount + " 회복");
+            state.log("[여황제] HP " + amount + " 회복");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             caster.costIncreasedOnPlay = true;
-            System.out.println("[여황제 역방향] 이번 턴 카드 사용 시 코스트 1~2 증가");
+            state.log("[여황제 역방향] 이번 턴 카드 사용 시 코스트 1~2 증가");
         }
     }
 
@@ -120,14 +120,14 @@ public class MajorEffects {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
             target.nextTurnPlayLimit = 1;
-            System.out.println("[황제] 상대의 다음 턴 카드 사용 수를 1장으로 제한");
+            state.log("[황제] 상대의 다음 턴 카드 사용 수를 1장으로 제한");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             caster.allCardsCostZeroThisTurn = true;
             caster.randomTargetsThisTurn = true;
-            System.out.println("[황제 역방향] 이번 턴 모든 카드 코스트 0, 타겟 랜덤");
+            state.log("[황제 역방향] 이번 턴 모든 카드 코스트 0, 타겟 랜덤");
         }
     }
 
@@ -136,13 +136,13 @@ public class MajorEffects {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
             target.majorBlocked = true;
-            System.out.println("[교황] 상대는 다음 행동 턴 동안 메이저 카드를 사용할 수 없음");
+            state.log("[교황] 상대는 다음 행동 턴 동안 메이저 카드를 사용할 수 없음");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             caster.effectsSwapped = true;
-            System.out.println("[교황 역방향] 이번 턴 내 카드의 정/역방향 효과가 뒤바뀜");
+            state.log("[교황 역방향] 이번 턴 내 카드의 정/역방향 효과가 뒤바뀜");
         }
     }
 
@@ -153,8 +153,8 @@ public class MajorEffects {
             Card casterCard = setRandomCardCostZero(caster);
             Card targetCard = setRandomCardCostZero(target);
 
-            if (casterCard != null) System.out.println("[연인] 내 " + casterCard.name + " 코스트 0");
-            if (targetCard != null) System.out.println("[연인] 상대 " + targetCard.name + " 코스트 0");
+            if (casterCard != null) state.log("[연인] 내 " + casterCard.name + " 코스트 0");
+            if (targetCard != null) state.log("[연인] 상대 " + targetCard.name + " 코스트 0");
         }
 
         @Override
@@ -173,7 +173,7 @@ public class MajorEffects {
             int chosen = (caster.hand.size > 1 && rand.nextBoolean()) ? second : first;
             Card forced = caster.hand.get(chosen);
             state.forcePlayCardFromHand(caster, chosen);
-            System.out.println("[연인 역방향] " + forced.name + " 강제 사용");
+            state.log("[연인 역방향] " + forced.name + " 강제 사용");
         }
     }
 
@@ -182,7 +182,7 @@ public class MajorEffects {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
             caster.keepPlayedCardsInHandThisTurn = true;
-            System.out.println("[전차] 이번 턴 이후 사용한 카드는 손패로 유지");
+            state.log("[전차] 이번 턴 이후 사용한 카드는 손패로 유지");
         }
 
         @Override
@@ -192,7 +192,7 @@ public class MajorEffects {
             for (int i = 0; i < drawCount; i++) {
                 state.drawCard(caster);
             }
-            System.out.println("[전차 역방향] 손패 " + drawCount + "장 교체");
+            state.log("[전차 역방향] 손패 " + drawCount + "장 교체");
         }
     }
 
@@ -202,13 +202,13 @@ public class MajorEffects {
         public void executeUpright(GameState state, Player caster, Player target) {
             caster.outgoingDamageBonus += 3;
             caster.lowHpOutgoingDamageBonus += 3;
-            System.out.println("[힘] 이번 턴 데미지 +3, HP 35% 이하이면 추가 +3");
+            state.log("[힘] 이번 턴 데미지 +3, HP 35% 이하이면 추가 +3");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             caster.effectFailChanceThisTurn = 0.5f;
-            System.out.println("[힘 역방향] 이번 턴 카드 효과가 50% 확률로 실패");
+            state.log("[힘 역방향] 이번 턴 카드 효과가 50% 확률로 실패");
         }
     }
 
@@ -217,13 +217,13 @@ public class MajorEffects {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
             caster.cannotBeTargeted = true;
-            System.out.println("[은둔자] 상대가 나를 타겟팅할 수 없음");
+            state.log("[은둔자] 상대가 나를 타겟팅할 수 없음");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             caster.forceReversedDraw = true;
-            System.out.println("[은둔자 역방향] 이번 턴 드로우 카드는 모두 역방향");
+            state.log("[은둔자 역방향] 이번 턴 드로우 카드는 모두 역방향");
         }
     }
 
@@ -236,17 +236,19 @@ public class MajorEffects {
 
             caster.hand.clear();
             caster.hand.addAll(target.hand);
+            state.refreshTransferredHandGrace(caster);
 
             target.hand.clear();
             for (Card c : casterCards) target.hand.add(c);
+            state.refreshTransferredHandGrace(target);
 
-            System.out.println("[운명의 수레바퀴] 상대와 손패 교환");
+            state.log("[운명의 수레바퀴] 상대와 손패 교환");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             caster.mirrorEffectsToSelfThisTurn = true;
-            System.out.println("[운명의 수레바퀴 역방향] 이번 턴 카드 효과가 나에게도 적용");
+            state.log("[운명의 수레바퀴 역방향] 이번 턴 카드 효과가 나에게도 적용");
         }
     }
 
@@ -266,14 +268,14 @@ public class MajorEffects {
                 if (target.hand.size == before) break;
             }
 
-            System.out.println("[정의] 상대 손패를 " + desiredSize + "장으로 조정");
+            state.log("[정의] 상대 손패를 " + desiredSize + "장으로 조정");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             target.effectsNegatedThisTurn = true;
             target.effectCostRefundReceiver = caster;
-            System.out.println("[정의 역방향] 상대 카드 효과 무효화, 코스트 회복");
+            state.log("[정의 역방향] 상대 카드 효과 무효화, 코스트 회복");
         }
     }
 
@@ -291,7 +293,7 @@ public class MajorEffects {
                 caster.deck.draw();
             }
 
-            System.out.println("[매달린 사람] HP 10% 감소 및 덱 초기화");
+            state.log("[매달린 사람] HP 10% 감소 및 덱 초기화");
         }
 
         @Override
@@ -307,14 +309,14 @@ public class MajorEffects {
             state.resetTableCards();
             state.refillHand(caster, 5);
             state.refillHand(target, 5);
-            System.out.println("[죽음] 테이블 리셋, 양쪽 손패 5장 재드로우");
+            state.log("[죽음] 테이블 리셋, 양쪽 손패 5장 재드로우");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             caster.handLockTurns = Math.max(caster.handLockTurns, 2);
             target.handLockTurns = Math.max(target.handLockTurns, 2);
-            System.out.println("[죽음 역방향] 양쪽 모두 2턴 동안 현재 손패로 버팀");
+            state.log("[죽음 역방향] 양쪽 모두 2턴 동안 현재 손패로 버팀");
         }
     }
 
@@ -323,13 +325,13 @@ public class MajorEffects {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
             balanceReversed(caster);
-            System.out.println("[절제] 손패 정/역방향 균형 조정");
+            state.log("[절제] 손패 정/역방향 균형 조정");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
-            for (Card c : caster.hand) c.reversed = !c.reversed;
-            System.out.println("[절제 역방향] 손패 정/역방향 반전");
+            for (Card c : caster.hand) c.setReversed(!c.reversed, false);
+            state.log("[절제 역방향] 손패 정/역방향 반전");
         }
     }
 
@@ -338,13 +340,13 @@ public class MajorEffects {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
             caster.canOverpayCostWithHpThisTurn = true;
-            System.out.println("[악마] 이번 턴 코스트 초과 사용 가능, 초과분 HP 소모");
+            state.log("[악마] 이번 턴 코스트 초과 사용 가능, 초과분 HP 소모");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             state.clearDebuffs(caster);
-            System.out.println("[악마 역방향] 내 제한/디버프 해제");
+            state.log("[악마 역방향] 내 제한/디버프 해제");
         }
     }
 
@@ -353,13 +355,13 @@ public class MajorEffects {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
             target.drawBlocked = true;
-            System.out.println("[탑] 상대 다음 드로우 불가");
+            state.log("[탑] 상대 다음 드로우 불가");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             caster.cost = new Random().nextInt(6) + 1;
-            System.out.println("[탑 역방향] 내 코스트가 " + caster.cost + "로 설정");
+            state.log("[탑 역방향] 내 코스트가 " + caster.cost + "로 설정");
         }
     }
 
@@ -368,14 +370,14 @@ public class MajorEffects {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
             caster.drawOnEmptyCostThisTurn = true;
-            System.out.println("[별] 이번 턴 코스트를 전부 소모하면 1장 드로우 및 다음 턴 코스트 2배");
+            state.log("[별] 이번 턴 코스트를 전부 소모하면 1장 드로우 및 다음 턴 코스트 2배");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             caster.fakeShieldTurns = Math.max(caster.fakeShieldTurns, 2);
             caster.fakeShieldBlockedDamage = 0;
-            System.out.println("[별 역방향] 2턴 가짜 보호막 생성");
+            state.log("[별 역방향] 2턴 가짜 보호막 생성");
         }
     }
 
@@ -387,13 +389,13 @@ public class MajorEffects {
             hideHand(target);
             forceRandomCard(state, caster);
             forceRandomCard(state, target);
-            System.out.println("[달] 양쪽 손패 은폐, 랜덤 1장 강제 사용");
+            state.log("[달] 양쪽 손패 은폐, 랜덤 1장 강제 사용");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             revealRandomCards(target, 2);
-            System.out.println("[달 역방향] 상대 손패 중 랜덤 2장 공개");
+            state.log("[달 역방향] 상대 손패 중 랜덤 2장 공개");
         }
     }
 
@@ -402,13 +404,13 @@ public class MajorEffects {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
             caster.cost = Math.min(caster.cost + 3, caster.costMax);
-            System.out.println("[태양] 이번 턴 코스트 +3");
+            state.log("[태양] 이번 턴 코스트 +3");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             caster.mustSpendAllCostThisTurn = true;
-            System.out.println("[태양 역방향] 턴 종료 시 남은 코스트만큼 HP 소모");
+            state.log("[태양 역방향] 턴 종료 시 남은 코스트만큼 HP 소모");
         }
     }
 
@@ -417,13 +419,13 @@ public class MajorEffects {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
             reviveRemovedCards(state, caster, 2);
-            System.out.println("[심판] 소멸 카드 최대 2장 부활");
+            state.log("[심판] 소멸 카드 최대 2장 부활");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             caster.delayEffectsThisTurn = true;
-            System.out.println("[심판 역방향] 이번 턴 이후 카드 효과 1턴 지연");
+            state.log("[심판 역방향] 이번 턴 이후 카드 효과 1턴 지연");
         }
     }
 
@@ -435,15 +437,15 @@ public class MajorEffects {
 
             if (target.hand.size > 0 && caster.hand.size < GameConfig.HAND_MAX) {
                 Card stolen = target.hand.removeIndex(new Random().nextInt(target.hand.size));
-                caster.hand.add(stolen);
-                System.out.println("[세계] 상대 " + stolen.name + " 카드를 가져옴");
+                state.addTransferredCardToHand(caster, stolen);
+                state.log("[세계] 상대 " + stolen.name + " 카드를 가져옴");
             }
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             target.nextTurnFixedCost = 3;
-            System.out.println("[세계 역방향] 상대 다음 턴 시작 코스트 3");
+            state.log("[세계 역방향] 상대 다음 턴 시작 코스트 3");
         }
     }
 
@@ -462,7 +464,7 @@ public class MajorEffects {
 
         int reversedTarget = player.hand.size / 2;
         for (int i = 0; i < cards.size(); i++) {
-            cards.get(i).reversed = i < reversedTarget;
+            cards.get(i).setReversed(i < reversedTarget, false);
         }
     }
 

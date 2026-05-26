@@ -1,5 +1,9 @@
 package io.eclipse.arcana.model;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 import com.badlogic.gdx.utils.Array;
 import io.eclipse.arcana.GameConfig;
 import io.eclipse.arcana.model.effect.CardEffect;
@@ -22,6 +26,16 @@ public class GameState {
         }
     }
 
+    public static class GraveyardCard {
+        public final Card card;
+        public int turnsRemaining;
+
+        public GraveyardCard(Card card, int turnsRemaining) {
+            this.card = card;
+            this.turnsRemaining = turnsRemaining;
+        }
+    }
+
     public final Player[] players = { new Player(), new Player() };
     public int currentPlayerIndex = 0;
     public GamePhase phase = GamePhase.DRAFT;
@@ -30,14 +44,60 @@ public class GameState {
     public int winnerIndex = -1; // -1 = 승자 없음
 
     public int roundCount = 0;
+    private final List<String> debugLog = new ArrayList<>();
+    private static final ThreadLocal<GameState> ACTIVE_LOG_STATE = new ThreadLocal<>();
 
     public GameState() {
         setupTest(Suit.SWORDS);
     }
 
+    public synchronized void log(String message) {
+        String entry = String.format(Locale.ROOT, "%03d | R%d P%d %s | %s",
+            debugLog.size() + 1,
+            roundCount,
+            currentPlayerIndex,
+            turnPhase,
+            message);
+        debugLog.add(entry);
+        System.out.println(entry);
+    }
+
+    public synchronized List<String> debugLogSnapshot() {
+        return new ArrayList<>(debugLog);
+    }
+
+    public synchronized void clearDebugLog() {
+        debugLog.clear();
+    }
+
+    public static GameState activeLogState() {
+        return ACTIVE_LOG_STATE.get();
+    }
+
+    public static void logActive(String message) {
+        GameState state = ACTIVE_LOG_STATE.get();
+        if (state != null) {
+            state.log(message);
+        } else {
+            System.out.println(message);
+        }
+    }
+
+    public int playerIndex(Player player) {
+        for (int i = 0; i < players.length; i++) {
+            if (players[i] == player) return i;
+        }
+        return -1;
+    }
+
+    public String playerLabel(Player player) {
+        int index = playerIndex(player);
+        return index >= 0 ? "P" + index : "Unknown";
+    }
+
     public static void applyReverseChance(Card card) {
         if (GameConfig.DEV_FORCE_REVERSE) {
-            card.reversed = true;
+            card.setReversed(true, true);
             return;
         }
 
@@ -51,7 +111,8 @@ public class GameState {
             chance = isCourt ? GameConfig.REVERSE_CHANCE_MINOR_COURT
                              : GameConfig.REVERSE_CHANCE_MINOR_NUM;
         }
-        card.reversed = (Math.random() < chance);
+        boolean reversed = Math.random() < chance;
+        card.setReversed(reversed, reversed);
     }
 
     public Card drawCard(Player player) {
@@ -67,20 +128,34 @@ public class GameState {
         if (!ignoreLocks && (player.drawBlocked || player.handLockTurns > 0)) return null;
 
         Card drawn = player.deck.draw();
-        if (drawn != null) {
-            applyReverseChance(drawn);
-            if (player.forceReversedDraw) drawn.reversed = true;
-
-            if (player.mustPlayNextDraw) {
-                player.mustPlayNextDraw = false;
-                player.hand.add(drawn);
-                forcePlayCardFromHand(player, player.hand.size - 1);
-                System.out.println("[강제 발동] " + drawn.name + " 카드가 즉시 사용되었습니다.");
-            } else {
-                player.hand.add(drawn);
-            }
-        }
+        addDrawnCardToHand(player, drawn);
         return drawn;
+    }
+
+    public void addDrawnCardToHand(Player player, Card drawn) {
+        if (drawn == null) return;
+
+        applyReverseChance(drawn);
+        if (player.forceReversedDraw) drawn.setReversed(true, true);
+
+        player.hand.add(drawn);
+        if (player.mustPlayNextDraw) {
+            player.mustPlayNextDraw = false;
+            forcePlayCardFromHand(player, player.hand.size - 1);
+            log("[강제 발동] " + drawn.name + " 카드가 즉시 사용되었습니다.");
+        }
+    }
+
+    public void addTransferredCardToHand(Player player, Card card) {
+        if (card == null) return;
+        if (card.reversed) card.refreshReverseGrace();
+        player.hand.add(card);
+    }
+
+    public void refreshTransferredHandGrace(Player player) {
+        for (Card card : player.hand) {
+            if (card.reversed) card.refreshReverseGrace();
+        }
     }
 
     public void setupTest(Suit suit) {
@@ -127,6 +202,7 @@ public class GameState {
             p.pentaclesPlayedThisTurn = 0;
 
             p.field.clear();
+            p.graveyard.clear();
 
             p.chosenSuit = suit;
             p.hand.clear();
@@ -141,16 +217,15 @@ public class GameState {
 
             for (int j = 0; j < 5; j++) {
                 Card drawn = p.deck.draw();
-                if (drawn != null) {
-                    applyReverseChance(drawn);
-                    p.hand.add(drawn);
-                }
+                addDrawnCardToHand(p, drawn);
             }
         }
         currentPlayerIndex = 0;
         phase = GamePhase.MAIN;
         turnPhase = TurnPhase.DRAW;
         turnTimer = GameConfig.TURN_TIME;
+        clearDebugLog();
+        log("[게임 시작] 테스트 게임 초기화: " + suit);
     }
 
     public Player currentPlayer() {
@@ -203,6 +278,10 @@ public class GameState {
 
         player.hand.removeIndex(handIndex);
         countSuitPlayed(player, card);
+        log("[카드 제출] " + playerLabel(player) + " " + card.name
+            + " / " + (card.reversed ? "역방향" : "정방향")
+            + " / cost " + paidCost
+            + (forced ? " / 강제" : ""));
 
         CardEffect effect = EffectRegistry.get(card.id);
         if (effect != null) {
@@ -210,14 +289,14 @@ public class GameState {
                 if (refundReceiver != null) {
                     refundReceiver.cost = Math.min(refundReceiver.cost + paidCost, refundReceiver.costMax);
                 }
-                System.out.println("[정의 역방향] " + card.name + " 효과 무효화");
+                log("[정의 역방향] " + card.name + " 효과 무효화");
             } else if (failChance > 0f && Math.random() < failChance) {
-                System.out.println("[힘 역방향] " + card.name + " 효과 발동 실패");
+                log("[힘 역방향] " + card.name + " 효과 발동 실패");
             } else {
                 Player target = chooseTarget(player);
                 if (delayEffect) {
                     player.delayedEffects.add(new PendingEffect(card, player, target, effectsSwapped, mirrorEffect));
-                    System.out.println("[심판 역방향] " + card.name + " 효과가 1턴 지연");
+                    log("[심판 역방향] " + card.name + " 효과가 1턴 지연");
                 } else {
                     executeCardEffect(effect, card, player, target, effectsSwapped);
                     if (mirrorEffect) {
@@ -229,7 +308,7 @@ public class GameState {
 
         if (card.isExtinction) {
             player.removedCards.add(card);
-            System.out.println("[시스템] " + card.name + " 카드가 소멸되었습니다.");
+            log("[시스템] " + card.name + " 카드가 소멸되었습니다.");
         } else if (keepPlayedCard) {
             player.hand.add(card);
         } else {
@@ -252,19 +331,30 @@ public class GameState {
             player.drawOnEmptyCostThisTurn = false;
             player.nextTurnCostMultiplier = Math.max(player.nextTurnCostMultiplier, 2);
             drawCard(player);
-            System.out.println("[별] 코스트 전부 소모: 1장 드로우, 다음 턴 코스트 2배");
+            log("[별] 코스트 전부 소모: 1장 드로우, 다음 턴 코스트 2배");
         }
     }
 
     private void executeCardEffect(CardEffect effect, Card card, Player caster, Player target, boolean effectsSwapped) {
         Card previousCard = caster.currentCard;
+        GameState previousLogState = ACTIVE_LOG_STATE.get();
         caster.currentCard = card;
         boolean useReversed = effectsSwapped ? !card.reversed : card.reversed;
 
-        if (useReversed) effect.executeReversed(this, caster, target);
-        else effect.executeUpright(this, caster, target);
+        log("[효과 시작] " + card.name
+            + " / " + (useReversed ? "역방향" : "정방향")
+            + " / " + playerLabel(caster) + " -> " + playerLabel(target));
 
-        caster.currentCard = previousCard;
+        ACTIVE_LOG_STATE.set(this);
+        try {
+            if (useReversed) effect.executeReversed(this, caster, target);
+            else effect.executeUpright(this, caster, target);
+            log("[효과 완료] " + card.name);
+        } finally {
+            caster.currentCard = previousCard;
+            if (previousLogState == null) ACTIVE_LOG_STATE.remove();
+            else ACTIVE_LOG_STATE.set(previousLogState);
+        }
     }
 
     private void countSuitPlayed(Player player, Card card) {
@@ -289,7 +379,43 @@ public class GameState {
                 player.deck.add(card);
             }
             player.field.clear();
+            for (GraveyardCard buried : player.graveyard) {
+                player.deck.add(buried.card);
+            }
+            player.graveyard.clear();
             player.deck.shuffle();
+        }
+    }
+
+    private void moveFieldToGraveyard(Player player) {
+        if (player.field.size == 0) return;
+
+        int moved = player.field.size;
+        for (Card card : player.field) {
+            player.graveyard.add(new GraveyardCard(card, GameConfig.USED_CARD_RETURN_TURNS));
+        }
+        player.field.clear();
+        log("[무덤] " + playerLabel(player) + " 사용 카드 " + moved + "장 이동"
+            + " / " + GameConfig.USED_CARD_RETURN_TURNS + "턴 후 덱 복귀");
+    }
+
+    private void returnDueGraveyardCards(Player player) {
+        if (player.graveyard.size == 0) return;
+
+        int returned = 0;
+        for (int i = player.graveyard.size - 1; i >= 0; i--) {
+            GraveyardCard buried = player.graveyard.get(i);
+            buried.turnsRemaining--;
+            if (buried.turnsRemaining <= 0) {
+                player.deck.add(buried.card);
+                player.graveyard.removeIndex(i);
+                returned++;
+            }
+        }
+
+        if (returned > 0) {
+            player.deck.shuffle();
+            log("[무덤] " + playerLabel(player) + " 카드 " + returned + "장 덱으로 복귀");
         }
     }
 
@@ -330,7 +456,7 @@ public class GameState {
             if (blocked > 0) {
                 int backlash = blocked + Math.max(1, blocked / 2);
                 player.hp = Math.max(0, player.hp - backlash);
-                System.out.println("[별 역방향] 가짜 보호막 소멸: " + backlash + " 피해");
+                log("[별 역방향] 가짜 보호막 소멸: " + backlash + " 피해");
                 checkWinCondition();
             }
         }
@@ -356,6 +482,73 @@ public class GameState {
         player.nextTurnFixedCost = -1;
     }
 
+    public int countReverseGraceCards(Player player) {
+        int count = 0;
+        for (Card card : player.hand) {
+            if (card.isReverseGraceActive()) count++;
+        }
+        return count;
+    }
+
+    public int countReversePenaltyCards(Player player) {
+        int count = 0;
+        for (Card card : player.hand) {
+            if (card.isReversePenaltyActive()) count++;
+        }
+        return count;
+    }
+
+    private void applyReverseHandPenalty(Player player) {
+        int activeCount = countReversePenaltyCards(player);
+        int graceCount = countReverseGraceCards(player);
+
+        if (activeCount > 0) {
+            int damage = reversePenaltyDamage(player, activeCount);
+            if (damage > 0) {
+                player.hp = Math.max(0, player.hp - damage);
+            }
+
+            if (activeCount >= 3) {
+                player.nextTurnCostModifier -= 1;
+            }
+            if (activeCount >= 4) {
+                player.drawBlocked = true;
+            }
+            if (activeCount >= 5) {
+                player.nextTurnPlayLimit = 1;
+            }
+
+            log("[역방향 디버프] 활성 " + activeCount + "장"
+                + (graceCount > 0 ? " / 유예 " + graceCount + "장" : "")
+                + " / HP -" + damage
+                + (activeCount >= 3 ? " / 다음 턴 코스트 -1" : "")
+                + (activeCount >= 4 ? " / 다음 턴 드로우 불가" : "")
+                + (activeCount >= 5 ? " / 다음 턴 사용 1장 제한" : ""));
+
+            checkWinCondition();
+        } else if (graceCount > 0) {
+            log("[역방향 유예] " + graceCount + "장 페널티 면제");
+        }
+
+        tickReverseGrace(player);
+    }
+
+    private int reversePenaltyDamage(Player player, int activeCount) {
+        int damage = 0;
+        if (activeCount >= 1) damage += GameConfig.REVERSE_DAMAGE_TIER_1;
+        if (activeCount >= 2) damage += GameConfig.REVERSE_DAMAGE_TIER_2;
+        if (activeCount >= 5) {
+            damage += Math.max(1, Math.round(player.hp * GameConfig.REVERSE_DOOM_HP_RATIO));
+        }
+        return damage;
+    }
+
+    private void tickReverseGrace(Player player) {
+        for (Card card : player.hand) {
+            card.tickReverseGrace();
+        }
+    }
+
     public void checkWinCondition() {
         for (int i = 0; i < players.length; i++) {
             if (players[i].hp <= 0) {
@@ -377,6 +570,7 @@ public class GameState {
         switch (turnPhase) {
             case DRAW:
                 Player p = currentPlayer();
+                returnDueGraveyardCards(p);
                 p.cannotBeTargeted = false;
                 p.playLimit = p.nextTurnPlayLimit;
                 p.nextTurnPlayLimit = -1;
@@ -429,7 +623,11 @@ public class GameState {
                     current.hp = Math.max(0, current.hp - current.cost);
                     current.cost = 0;
                     checkWinCondition();
+                    if (phase == GamePhase.GAME_OVER) return;
                 }
+
+                applyReverseHandPenalty(current);
+                if (phase == GamePhase.GAME_OVER) return;
 
                 current.costIncreasedOnPlay = false;
                 current.allCardsCostZeroThisTurn = false;
@@ -456,7 +654,7 @@ public class GameState {
                 current.pentaclesPlayedThisTurn = 0;
                 current.reflectRatio = 0;
 
-                current.field.clear();
+                moveFieldToGraveyard(current);
 
                 if (!current.carryOver) {
                     current.cost = Math.min(current.costInit, current.costMax);

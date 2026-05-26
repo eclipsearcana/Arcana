@@ -16,6 +16,7 @@ public class Player {
     public int costMax = 10;
     public boolean carryOver = false; // 코스트 이월
     public final Array<Card> field = new Array<>();
+    public final Array<GameState.GraveyardCard> graveyard = new Array<>();
 
     public boolean saveHalfCostNextTurn = false;
 

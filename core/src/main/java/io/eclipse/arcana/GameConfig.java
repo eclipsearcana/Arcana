@@ -9,10 +9,15 @@ public class GameConfig {
     public static final float TURN_TIME         = 20f;
     public static final int   HAND_START_COUNT  = 5;
     public static final int   HAND_MAX = 6;
+    public static final int   USED_CARD_RETURN_TURNS = 2;
 
     public static final float REVERSE_CHANCE_MINOR_NUM   = 0.35f;
     public static final float REVERSE_CHANCE_MINOR_COURT = 0.25f;
     public static final float REVERSE_CHANCE_MAJOR       = 0.20f;
+    public static final int   REVERSE_GRACE_TURNS        = 1;
+    public static final int   REVERSE_DAMAGE_TIER_1      = 5;
+    public static final int   REVERSE_DAMAGE_TIER_2      = 10;
+    public static final float REVERSE_DOOM_HP_RATIO      = 0.10f;
 
     // ── 개발 플래그 ───────────────────────────────────────────────────────────
     public static final boolean DEV_NO_COST_LIMIT = true;

@@ -1,9 +1,14 @@
 package io.eclipse.arcana.lwjgl3;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+import com.badlogic.gdx.backends.lwjgl3.Lwjgl3WindowConfiguration;
 import com.badlogic.gdx.graphics.glutils.HdpiMode;
 import io.eclipse.arcana.Core;
+import io.eclipse.arcana.DebugContext;
+import io.eclipse.arcana.DebugPanel;
+import io.eclipse.arcana.DebugWindowOpener;
 
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
@@ -13,7 +18,23 @@ public class Lwjgl3Launcher {
     }
 
     private static Lwjgl3Application createApplication() {
-        return new Lwjgl3Application(new Core(), getDefaultConfiguration());
+        return new Lwjgl3Application(new Core(new DesktopDebugWindowOpener()), getDefaultConfiguration());
+    }
+
+    private static class DesktopDebugWindowOpener implements DebugWindowOpener {
+        @Override
+        public void open(DebugContext context) {
+            if (!(Gdx.app instanceof Lwjgl3Application)) return;
+
+            Lwjgl3WindowConfiguration configuration = new Lwjgl3WindowConfiguration();
+            configuration.setTitle("Arcana Debug");
+            configuration.setWindowedMode(760, 860);
+            int x = Math.max(0, Lwjgl3ApplicationConfiguration.getDisplayMode().width - 790);
+            configuration.setWindowPosition(x, 60);
+            configuration.setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png");
+
+            ((Lwjgl3Application) Gdx.app).newWindow(new DebugPanel(context), configuration);
+        }
     }
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
