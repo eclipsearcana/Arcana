@@ -2,6 +2,7 @@ package io.eclipse.arcana.lwjgl3;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Files;
+import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3WindowConfiguration;
@@ -13,6 +14,12 @@ import java.lang.reflect.Proxy;
 
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
+    private static final float WINDOW_SCALE = 0.8f;
+    private static final float TARGET_WINDOW_RATIO = 16f / 10f;
+    private static final int DEBUG_WORLD_WIDTH = 760;
+    private static final int DEBUG_WORLD_HEIGHT = 860;
+    private static final float DEBUG_WINDOW_SCALE = 1.12f;
+
     public static void main(String[] args) {
         if (StartupHelper.startNewJvmIfRequired()) return; // This handles macOS support and helps on Windows.
         useAssetsAsWorkingDirectory();
@@ -55,11 +62,22 @@ public class Lwjgl3Launcher {
     private static void openDebugWindow(Object context) {
         if (!(Gdx.app instanceof Lwjgl3Application)) return;
 
+        DisplayMode displayMode = Lwjgl3ApplicationConfiguration.getDisplayMode();
+        int debugHeight = Math.round(DEBUG_WORLD_HEIGHT * DEBUG_WINDOW_SCALE);
+        int maxDebugHeight = Math.max(DEBUG_WORLD_HEIGHT, displayMode.height - 120);
+        debugHeight = Math.min(debugHeight, maxDebugHeight);
+        int debugWidth = Math.round(debugHeight * DEBUG_WORLD_WIDTH / (float) DEBUG_WORLD_HEIGHT);
+        if (debugWidth > displayMode.width) {
+            debugWidth = displayMode.width;
+            debugHeight = Math.round(debugWidth * DEBUG_WORLD_HEIGHT / (float) DEBUG_WORLD_WIDTH);
+        }
+
         Lwjgl3WindowConfiguration configuration = new Lwjgl3WindowConfiguration();
         configuration.setTitle("Arcana Debug");
-        configuration.setWindowedMode(760, 860);
-        int x = Math.max(0, Lwjgl3ApplicationConfiguration.getDisplayMode().width - 790);
-        configuration.setWindowPosition(x, 60);
+        configuration.setWindowedMode(debugWidth, debugHeight);
+        configuration.setWindowPosition(
+            Math.max(0, displayMode.width - debugWidth - 24),
+            Math.max(0, (displayMode.height - debugHeight) / 2));
         setWindowIcons(configuration);
 
         try {
@@ -81,12 +99,27 @@ public class Lwjgl3Launcher {
         configuration.useVsync(true);
         //// Limits FPS to the refresh rate of the currently active monitor, plus 1 to try to match fractional
         //// refresh rates. The Vsync setting above should limit the actual FPS to match the monitor.
-        configuration.setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate + 1);
+        DisplayMode displayMode = Lwjgl3ApplicationConfiguration.getDisplayMode();
+        configuration.setForegroundFPS(displayMode.refreshRate + 1);
         //// If you remove the above line and set Vsync to false, you can get unlimited FPS, which can be
         //// useful for testing performance, but can also be very stressful to some hardware.
         //// You may also need to configure GPU drivers to fully disable Vsync; this can cause screen tearing.
 
-        configuration.setWindowedMode(1600, 1000);
+        int windowWidth = (int) (displayMode.width * WINDOW_SCALE);
+        int windowHeight = (int) (displayMode.height * WINDOW_SCALE);
+        float currentRatio = windowWidth / (float) windowHeight;
+
+        if (currentRatio > TARGET_WINDOW_RATIO) {
+            windowWidth = (int) (windowHeight * TARGET_WINDOW_RATIO);
+        } else {
+            windowHeight = (int) (windowWidth / TARGET_WINDOW_RATIO);
+        }
+
+        configuration.setWindowedMode(windowWidth, windowHeight);
+        configuration.setWindowPosition(
+            (displayMode.width - windowWidth) / 2,
+            (displayMode.height - windowHeight) / 2);
+        configuration.setResizable(false);
         // 물리 픽셀 단위로 렌더링 — DPI 스케일링(125%, 150% 등) 환경에서도 선명하게 출력
         configuration.setHdpiMode(HdpiMode.Pixels);
         //// You can change these files; they are in lwjgl3/src/main/resources/ .

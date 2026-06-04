@@ -34,7 +34,9 @@ public class DebugPanel extends ApplicationAdapter {
     private static final float LOG_Y = 22f;
     private static final float LOG_W = 724f;
     private static final float LOG_H = 420f;
-    private static final float LOG_LINE_H = 16f;
+    private static final float LOG_LINE_H = 18f;
+    private static final float FONT_DPI_BOOST = 1.12f;
+    private static final float MAX_FONT_SCALE_OVER_WINDOW = 1.42f;
 
     private static final Color BACKGROUND = new Color(0.045f, 0.05f, 0.06f, 1f);
     private static final Color PANEL = new Color(0.09f, 0.10f, 0.12f, 1f);
@@ -74,7 +76,7 @@ public class DebugPanel extends ApplicationAdapter {
         viewport = new FitViewport(WORLD_W, WORLD_H, camera);
         batch = new SpriteBatch();
         shape = new ShapeRenderer();
-        fonts = new FontManager(Gdx.graphics.getWidth() / WORLD_W);
+        fonts = new FontManager(debugFontPxPerUnit());
 
         float buttonY = 470f;
         drawButton = new Rectangle(24f, buttonY, 164f, 42f);
@@ -89,6 +91,13 @@ public class DebugPanel extends ApplicationAdapter {
                 return true;
             }
         });
+    }
+
+    private float debugFontPxPerUnit() {
+        float windowPxPerUnit = Math.max(1f, Gdx.graphics.getWidth()) / WORLD_W;
+        float bufferPxPerUnit = Math.max(1f, Gdx.graphics.getBackBufferWidth()) / WORLD_W;
+        float boosted = Math.max(windowPxPerUnit, bufferPxPerUnit) * FONT_DPI_BOOST;
+        return Math.min(boosted, windowPxPerUnit * MAX_FONT_SCALE_OVER_WINDOW);
     }
 
     @Override
