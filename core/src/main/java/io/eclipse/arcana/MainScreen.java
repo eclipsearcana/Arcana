@@ -78,6 +78,22 @@ public class MainScreen implements Screen {
     private static final Color COL_BTN_BORDER = new Color(0.7f,  0.6f,  0.2f,  1f);
     private static final Color COL_GRAVE_BG = new Color(0.04f, 0.04f, 0.06f, 0.68f);
     private static final Color COL_GRAVE_BORDER = new Color(0.38f, 0.33f, 0.22f, 0.85f);
+    private static final Color COL_HP_PANEL_BG = new Color(0.04f, 0.04f, 0.06f, 0.72f);
+    private static final Color COL_HP_PANEL_BORDER = new Color(0.38f, 0.33f, 0.22f, 0.85f);
+    private static final Color COL_HP_ACTIVE_BORDER = new Color(0.88f, 0.72f, 0.24f, 1f);
+    private static final Color COL_HP_BAR_BG = new Color(0.16f, 0.04f, 0.06f, 0.95f);
+    private static final Color COL_HP_BAR_FILL = new Color(0.78f, 0.12f, 0.16f, 1f);
+    private static final Color COL_HP_BAR_LOW = new Color(0.95f, 0.44f, 0.08f, 1f);
+
+    private static final float HP_PANEL_X = 80f;
+    private static final float HP_PANEL_W = 270f;
+    private static final float HP_PANEL_H = 58f;
+    private static final float HP_P0_Y = 210f;
+    private static final float HP_P1_Y = 790f;
+    private static final float HP_BAR_X = HP_PANEL_X + 18f;
+    private static final float HP_BAR_W = HP_PANEL_W - 36f;
+    private static final float HP_BAR_H = 12f;
+    private static final float HP_BAR_OFFSET_Y = 13f;
 
     // DEBUG PANEL
     private static final float PANEL_X     = 1390f;
@@ -91,6 +107,7 @@ public class MainScreen implements Screen {
 
     private final Core game;
     private final DebugContext debugContext;
+    private final Suit selectedSuit;
 
     private SpriteBatch   batch;
     private ShapeRenderer shape;
@@ -133,12 +150,17 @@ public class MainScreen implements Screen {
     }
 
     public MainScreen(Core game) {
-        this(game, null);
+        this(game, null, Suit.SWORDS);
     }
 
     public MainScreen(Core game, DebugContext debugContext) {
+        this(game, debugContext, Suit.SWORDS);
+    }
+
+    public MainScreen(Core game, DebugContext debugContext, Suit selectedSuit) {
         this.game = game;
         this.debugContext = debugContext;
+        this.selectedSuit = selectedSuit;
     }
 
     @Override
@@ -152,7 +174,7 @@ public class MainScreen implements Screen {
         assets = new ArcanaAssets();
         assets.finishLoading();
 
-        state = new GameState();
+        state = new GameState(selectedSuit);
         if (debugContext != null) {
             debugContext.setState(state);
         }
@@ -165,7 +187,9 @@ public class MainScreen implements Screen {
         TurnPhase beforeTurnPhase = state.turnPhase;
         int beforeHandSize = state.players[beforePlayerIndex].hand.size;
         Array<BurialAnimation> pendingBurials = captureBurialAnimationStarts(beforePlayerIndex, beforeTurnPhase);
-        state.update(delta);
+        if (!isDebugMode()) {
+            state.update(delta);
+        }
         startBurialAnimationsAfterPhaseAdvance(beforePlayerIndex, beforeTurnPhase, pendingBurials);
         startDrawAnimationAfterPhaseAdvance(beforePlayerIndex, beforeTurnPhase, beforeHandSize);
 
@@ -201,6 +225,7 @@ public class MainScreen implements Screen {
         drawHandShapes(state.players[1].hand, HAND1_Y, true);
         drawGraveyardZoneShapes();
         drawButtonShapes();
+        drawHudShapes();
         shape.end();
 
         batch.begin();
@@ -239,6 +264,10 @@ public class MainScreen implements Screen {
                     break;
             }
         }
+    }
+
+    private boolean isDebugMode() {
+        return debugContext != null;
     }
 
     private void updateHover(float delta) {
@@ -736,6 +765,27 @@ public class MainScreen implements Screen {
     }
 
     // HUD
+    private void drawHudShapes() {
+        drawHpPanelShape(0, HP_P0_Y);
+        drawHpPanelShape(1, HP_P1_Y);
+    }
+
+    private void drawHpPanelShape(int playerIndex, float y) {
+        Player player = state.players[playerIndex];
+        boolean active = state.phase == GamePhase.MAIN && state.currentPlayerIndex == playerIndex;
+        float hpRatio = MathUtils.clamp((float) player.hp / GameConfig.PLAYER_HP_START, 0f, 1f);
+
+        shape.setColor(active ? COL_HP_ACTIVE_BORDER : COL_HP_PANEL_BORDER);
+        shape.rect(HP_PANEL_X, y, HP_PANEL_W, HP_PANEL_H);
+        shape.setColor(COL_HP_PANEL_BG);
+        shape.rect(HP_PANEL_X + 2f, y + 2f, HP_PANEL_W - 4f, HP_PANEL_H - 4f);
+
+        shape.setColor(COL_HP_BAR_BG);
+        shape.rect(HP_BAR_X, y + HP_BAR_OFFSET_Y, HP_BAR_W, HP_BAR_H);
+        shape.setColor(hpRatio <= 0.35f ? COL_HP_BAR_LOW : COL_HP_BAR_FILL);
+        shape.rect(HP_BAR_X, y + HP_BAR_OFFSET_Y, HP_BAR_W * hpRatio, HP_BAR_H);
+    }
+
     private void drawGameOver() {
         fonts.title.setColor(1f, 0.84f, 0f, 1f);
         String msg = "Player " + state.winnerIndex + " Wins!";
@@ -746,6 +796,22 @@ public class MainScreen implements Screen {
 
     private void drawHud() {
         drawButtonLabels();
+        drawHpPanelText(0, HP_P0_Y);
+        drawHpPanelText(1, HP_P1_Y);
+    }
+
+    private void drawHpPanelText(int playerIndex, float y) {
+        Player player = state.players[playerIndex];
+        String label = "P" + playerIndex + " HP";
+        String value = player.hp + " / " + GameConfig.PLAYER_HP_START;
+
+        fonts.normal.setColor(0.92f, 0.86f, 0.70f, 1f);
+        fonts.normal.draw(batch, label, HP_PANEL_X + 18f, y + 43f);
+
+        GlyphLayout layout = new GlyphLayout(fonts.normal, value);
+        fonts.normal.setColor(1f, 1f, 1f, 1f);
+        fonts.normal.draw(batch, value, HP_PANEL_X + HP_PANEL_W - 18f - layout.width, y + 43f);
+        fonts.normal.setColor(Color.WHITE);
     }
 
     private Array<BurialAnimation> captureBurialAnimationStarts(int ownerIndex, TurnPhase turnPhase) {

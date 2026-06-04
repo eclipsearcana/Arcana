@@ -1,6 +1,8 @@
 package io.eclipse.arcana;
 
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.assets.loaders.FileHandleResolver;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
 
 import io.eclipse.arcana.model.Card;
@@ -8,7 +10,12 @@ import io.eclipse.arcana.model.Suit;
 
 public class ArcanaAssets {
 
-    private final AssetManager manager = new AssetManager();
+    private final AssetManager manager = new AssetManager(new FileHandleResolver() {
+        @Override
+        public FileHandle resolve(String fileName) {
+            return ArcanaFiles.asset(fileName);
+        }
+    });
 
     private static final String[] MAJOR_IDS = {
         "Fool", "Magician", "Priestess", "Empress", "Emperor",
@@ -159,7 +166,7 @@ public class ArcanaAssets {
     }
 
     private boolean fileExists(String path) {
-        return com.badlogic.gdx.Gdx.files.internal(path).exists();
+        return ArcanaFiles.asset(path).exists();
     }
 
     private String cap(String s) {

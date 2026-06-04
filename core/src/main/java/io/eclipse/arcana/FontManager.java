@@ -29,8 +29,9 @@ public class FontManager implements Disposable {
     }
 
     private FreeTypeFontGenerator loadGenerator() {
-        if (Gdx.files.internal("fonts/NotoSansKR-Regular.ttf").exists())
-            return new FreeTypeFontGenerator(Gdx.files.internal("fonts/NotoSansKR-Regular.ttf"));
+        com.badlogic.gdx.files.FileHandle fontFile = ArcanaFiles.asset("fonts/NotoSansKR-Regular.ttf");
+        if (fontFile.exists())
+            return new FreeTypeFontGenerator(fontFile);
         // Windows 시스템 폰트 fallback (맑은 고딕)
         return new FreeTypeFontGenerator(Gdx.files.absolute("C:/Windows/Fonts/malgun.ttf"));
     }

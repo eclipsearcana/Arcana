@@ -2,6 +2,7 @@ package io.eclipse.arcana;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -85,12 +86,12 @@ public class FirstScreen implements Screen {
         String suffix = isBright ? "A" : "B";
 
         // 선택된 디자인에 맞는 이미지 로드
-        titleTexture = new Texture(Gdx.files.internal(folder + "title" + suffix + ".png"));
-        logoTexture = new Texture(Gdx.files.internal(folder + "logo" + suffix + ".png"));
-        startTexture = new Texture(Gdx.files.internal(folder + "start" + suffix + ".png"));
-        settingsTexture = new Texture(Gdx.files.internal(folder + "settings" + suffix + ".png"));
-        exitTexture = new Texture(Gdx.files.internal(folder + "exit" + suffix + ".png"));
-        starTexture = new Texture(Gdx.files.internal(folder + "star" + suffix + ".png"));
+        titleTexture = loadTexture(folder + "title" + suffix + ".png");
+        logoTexture = loadTexture(folder + "logo" + suffix + ".png");
+        startTexture = loadTexture(folder + "start" + suffix + ".png");
+        settingsTexture = loadTexture(folder + "settings" + suffix + ".png");
+        exitTexture = loadTexture(folder + "exit" + suffix + ".png");
+        starTexture = loadTexture(folder + "star" + suffix + ".png");
 
         // 이미지를 확대/축소했을 때 부드럽게 보이도록 필터 적용
         setLinearFilter(titleTexture);
@@ -115,6 +116,14 @@ public class FirstScreen implements Screen {
         texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
     }
 
+    private Texture loadTexture(String path) {
+        FileHandle file = ArcanaFiles.asset(path);
+        if (!file.exists()) {
+            throw new com.badlogic.gdx.utils.GdxRuntimeException("Missing title asset: " + path);
+        }
+        return new Texture(file);
+    }
+
     private void resetRay(int i) {
         rayX[i] = MathUtils.random(100f, 1500f);
         rayWidth[i] = MathUtils.random(60f, 180f);
@@ -131,7 +140,7 @@ public class FirstScreen implements Screen {
         if (transitioning) {
             transitionAlpha = Math.min(1f, transitionAlpha + TRANSITION_SPEED * delta);
             if (transitionAlpha >= 1f) {
-                game.setScreen(new MainScreen(game));
+                game.setScreen(new MinorDeckSelectScreen(game));
                 return;
             }
         } else {

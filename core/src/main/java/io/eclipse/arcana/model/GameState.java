@@ -51,6 +51,10 @@ public class GameState {
         setupTest(Suit.SWORDS);
     }
 
+    public GameState(Suit suit) {
+        setupTest(suit);
+    }
+
     public synchronized void log(String message) {
         String entry = String.format(Locale.ROOT, "%03d | R%d P%d %s | %s",
             debugLog.size() + 1,
