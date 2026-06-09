@@ -18,6 +18,9 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 import io.eclipse.arcana.model.*;
+import io.eclipse.arcana.model.ai.SimpleAiOpponent;
+import io.eclipse.arcana.model.controller.HumanPlayerController;
+import io.eclipse.arcana.model.controller.PlayerController;
 import io.eclipse.arcana.render.CardRenderer;
 
 public class MainScreen implements Screen {
@@ -169,6 +172,23 @@ public class MainScreen implements Screen {
     private ArcanaAssets  assets;  // ← 추가
 
     private GameState state;
+    // P0/P1을 각각 컨트롤러 슬롯으로 관리합니다.
+    // 현재는 P0 = Human, P1 = AI이며, 이후 Remote 컨트롤러를 같은 배열에 꽂을 수 있습니다.
+    private final PlayerController[] playerControllers = {
+        new HumanPlayerController(0),
+        new SimpleAiOpponent(1)
+    };
+    private final PlayerController.Actions controllerActions = new PlayerController.Actions() {
+        @Override
+        public boolean hasCardAnimation() {
+            return MainScreen.this.hasCardAnimation();
+        }
+
+        @Override
+        public void advanceTurnPhase() {
+            MainScreen.this.advanceTurnPhase();
+        }
+    };
     private final Vector2 touch = new Vector2();
     private final Vector2 mouse  = new Vector2();
 
@@ -300,6 +320,7 @@ public class MainScreen implements Screen {
         updatePlayAnim(delta);
         updateDrawAnim(delta);
         updateBurialAnims(delta);
+        updateCurrentController(delta);
 
         handleClick();
         detectCardZoneTransitions();
@@ -375,6 +396,26 @@ public class MainScreen implements Screen {
 
     private boolean isDebugMode() {
         return debugContext != null;
+    }
+
+    private PlayerController currentController() {
+        if (state.currentPlayerIndex < 0 || state.currentPlayerIndex >= playerControllers.length) return null;
+        return playerControllers[state.currentPlayerIndex];
+    }
+
+    private boolean acceptsHumanInputThisTurn() {
+        PlayerController controller = currentController();
+        if (controller == null) return true;
+        if (!GameConfig.AI_OPPONENT_ENABLED && state.currentPlayerIndex == 1) return true;
+        return controller.acceptsHumanInput();
+    }
+
+    private void updateCurrentController(float delta) {
+        if (!GameConfig.AI_OPPONENT_ENABLED) return;
+        PlayerController controller = currentController();
+        if (controller == null) return;
+        // 화면은 호출 타이밍만 담당하고, 실제 판단은 PlayerController 구현체에 맡깁니다.
+        controller.update(state, state.currentPlayerIndex, delta, controllerActions);
     }
 
     private void updateHover(float delta) {
@@ -1708,6 +1749,7 @@ public class MainScreen implements Screen {
         clearCardAnimations();
         stagedSelectionCard = null;
         stagedSelectionRequest = null;
+        for (PlayerController ctrl : playerControllers) ctrl.reset();
         state.setupTest(state.players[0].chosenSuit);
         resetHpDisplay();
         resetCardZoneSnapshots();
@@ -1851,6 +1893,7 @@ public class MainScreen implements Screen {
         }
 
         if (hasCardAnimation()) return;
+        if (!acceptsHumanInputThisTurn()) return;
 
         if (left) {
             if (btnDraw.contains(wx, wy)) {

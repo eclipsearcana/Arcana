@@ -760,8 +760,8 @@ public class GameState {
 
     public int countReversePenaltyCards(Player player) {
         int count = 0;
-        for (Card card : player.hand) {
-            if (card.isReversePenaltyActive()) count++;
+        for (int i = 0; i < player.hand.size; i++) {
+            if (player.hand.get(i).isReversePenaltyActive()) count++;
         }
         return count;
     }
@@ -873,16 +873,6 @@ public class GameState {
                 turnPhase = TurnPhase.ACTION;
                 turnTimer = GameConfig.TURN_TIME;
 
-                if (GameConfig.DEV_AUTO_P1 && currentPlayerIndex == 1) {
-                    Player p1 = currentPlayer();
-                    int count = Math.min(3, p1.hand.size);
-                    for (int i = p1.hand.size - 1; i >= 0 && count > 0; i--) {
-                        Card card = p1.hand.get(i);
-                        if (p1.majorBlocked && card.type == Card.ArcanaType.MAJOR) continue;
-                        p1.field.add(p1.hand.removeIndex(i));
-                        count--;
-                    }
-                }
                 break;
             case ACTION:
                 unstageAll(currentPlayer());

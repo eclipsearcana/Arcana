@@ -21,7 +21,7 @@ public class GameConfig {
 
     // ── 개발 플래그 ───────────────────────────────────────────────────────────
     public static final boolean DEV_NO_COST_LIMIT = true;
-    public static final boolean DEV_AUTO_P1       = true;
+    public static final boolean AI_OPPONENT_ENABLED = true;
     public static final boolean DEV_FORCE_REVERSE = false;
 
     // ── 월드 ──────────────────────────────────────────────────────────────────
