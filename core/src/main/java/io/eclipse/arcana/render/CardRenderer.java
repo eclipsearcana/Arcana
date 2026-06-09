@@ -81,15 +81,6 @@ public class CardRenderer {
 
         if (costTex != null) {
             batch.draw(costTex, cx, cy, size, size);
-            if (effectiveCost != card.cost) {
-                String costStr = String.valueOf(effectiveCost);
-                LAYOUT.setText(font, costStr);
-                font.setColor(effectiveCost < card.cost ? COL_EFFECT_POSITIVE : COL_EFFECT_NEGATIVE);
-                font.draw(batch, costStr,
-                    cx + size / 2f - LAYOUT.width / 2f,
-                    cy + size / 2f + LAYOUT.height / 2f);
-                font.setColor(Color.WHITE);
-            }
         } else {
             Color borderCol = borderColor(card);
             font.setColor(borderCol);
@@ -165,10 +156,24 @@ public class CardRenderer {
         Color color = forcePositive ? COL_EFFECT_POSITIVE : effectColor(card);
         if (color == null) return;
 
-        sr.setColor(color);
-        sr.rect(x - 5f, y - 5f, CARD_W + 10f, CARD_H + 10f);
-        sr.setColor(0.03f, 0.03f, 0.05f, 1f);
+        sr.setColor(color.r, color.g, color.b, 0.08f);
+        sr.rect(x - 10f, y - 10f, CARD_W + 20f, CARD_H + 20f);
+        sr.setColor(color.r, color.g, color.b, 0.18f);
+        sr.rect(x - 6f, y - 6f, CARD_W + 12f, CARD_H + 12f);
+        sr.setColor(0.03f, 0.025f, 0.07f, 0.96f);
         sr.rect(x - 2f, y - 2f, CARD_W + 4f, CARD_H + 4f);
+
+        float corner = 25f;
+        float thickness = 3f;
+        sr.setColor(color.r, color.g, color.b, 0.90f);
+        sr.rect(x - 6f, y - 6f, corner, thickness);
+        sr.rect(x - 6f, y - 6f, thickness, corner);
+        sr.rect(x + CARD_W + 6f - corner, y - 6f, corner, thickness);
+        sr.rect(x + CARD_W + 3f, y - 6f, thickness, corner);
+        sr.rect(x - 6f, y + CARD_H + 3f, corner, thickness);
+        sr.rect(x - 6f, y + CARD_H + 6f - corner, thickness, corner);
+        sr.rect(x + CARD_W + 6f - corner, y + CARD_H + 3f, corner, thickness);
+        sr.rect(x + CARD_W + 3f, y + CARD_H + 6f - corner, thickness, corner);
     }
 
     // 텍스트 렌더
@@ -228,9 +233,8 @@ public class CardRenderer {
 
     private static Color effectColor(Card card) {
         if (card.lockedInHand || card.effectMark == Card.EffectMark.LOCKED) return COL_EFFECT_LOCKED;
-        int costChange = card.costModifier + card.turnCostModifier;
-        if (card.effectMark == Card.EffectMark.NEGATIVE || costChange > 0) return COL_EFFECT_NEGATIVE;
-        if (card.effectMark == Card.EffectMark.POSITIVE || costChange < 0) return COL_EFFECT_POSITIVE;
+        if (card.effectMark == Card.EffectMark.NEGATIVE) return COL_EFFECT_NEGATIVE;
+        if (card.effectMark == Card.EffectMark.POSITIVE) return COL_EFFECT_POSITIVE;
         if (card.effectMark == Card.EffectMark.SPECIAL || card.isCloned || card.isIllusion) return COL_EFFECT_SPECIAL;
         return null;
     }

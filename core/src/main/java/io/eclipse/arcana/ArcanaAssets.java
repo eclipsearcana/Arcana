@@ -63,6 +63,13 @@ public class ArcanaAssets {
         // 배경 일러스트
         String bg = "ui/Game_Background.png";
         if (fileExists(bg)) manager.load(bg, Texture.class);
+        queueTexture("ui/Draft_Background.png");
+        queueTexture("ui/StatFrame.png");
+        queueTexture("ui/HPBar.png");
+        queueTexture("ui/CostUI.png");
+        for (Suit suit : SUITS) {
+            queueTexture("ui/rune/" + suit.name().toLowerCase() + "_masked.png");
+        }
 
         // 뒷면 일러스트
         String back = "cards/back.png";
@@ -204,6 +211,32 @@ public class ArcanaAssets {
 
     public Texture background() {
         String path = "ui/Game_Background.png";
+        return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
+    }
+
+    public Texture draftBackground() {
+        String path = "ui/Draft_Background.png";
+        return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
+    }
+
+    public Texture hpBar() {
+        String path = "ui/HPBar.png";
+        return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
+    }
+
+    public Texture statFrame() {
+        String path = "ui/StatFrame.png";
+        return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
+    }
+
+    public Texture costUi() {
+        String path = "ui/CostUI.png";
+        return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
+    }
+
+    public Texture rune(Suit suit) {
+        if (suit == null) return null;
+        String path = "ui/rune/" + suit.name().toLowerCase() + "_masked.png";
         return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
     }
 

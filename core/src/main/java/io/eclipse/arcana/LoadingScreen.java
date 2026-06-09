@@ -157,7 +157,7 @@ public class LoadingScreen implements Screen {
         drawTransitionOverlay();
 
         if (transitionComplete) {
-            game.setScreen(new MinorDeckSelectScreen(game));
+            game.showTutorial();
             dispose();
         }
     }

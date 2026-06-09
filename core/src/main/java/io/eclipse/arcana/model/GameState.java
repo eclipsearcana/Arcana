@@ -79,6 +79,10 @@ public class GameState {
         setupTest(suit);
     }
 
+    public GameState(Suit suit, Array<Card> playerDraftMajors, Array<Card> opponentDraftMajors) {
+        setupTest(suit, playerDraftMajors, opponentDraftMajors);
+    }
+
     public synchronized void log(String message) {
         String entry = String.format(Locale.ROOT, "%03d | R%d P%d %s | %s",
             debugLog.size() + 1,
@@ -187,9 +191,19 @@ public class GameState {
     }
 
     public void setupTest(Suit suit) {
+        setupTest(suit, null, null);
+    }
+
+    private void setupTest(Suit suit, Array<Card> playerDraftMajors, Array<Card> opponentDraftMajors) {
         pendingSelection = null;
         queuedSelections.clear();
         resolvingStagedPlayer = null;
+        Suit opponentSuit = randomDifferentSuit(suit);
+        Array<Card> sharedMajorCards = CardDefinitions.allMajor();
+        sharedMajorCards.shuffle();
+        Array<Array<Card>> startingDecks = new Array<>();
+        for (int i = 0; i < players.length; i++) startingDecks.add(new Array<Card>());
+
         for (int i = 0; i < players.length; i++) {
             Player p = players[i];
 
@@ -246,20 +260,39 @@ public class GameState {
             p.graveyard.clear();
             p.removedCards.clear();
 
-            p.chosenSuit = suit;
+            p.chosenSuit = i == 0 ? suit : opponentSuit;
             p.hand.clear();
 
             p.deck.clear();
 
-            Array<Card> allCards = CardDefinitions.allMajor();
-            allCards.addAll(CardDefinitions.allMinor(suit));
-            allCards.shuffle();
+            startingDecks.get(i).addAll(CardDefinitions.allMinor(p.chosenSuit));
+        }
 
-            for (Card c : allCards) p.deck.add(c);
+        boolean draftedStart = playerDraftMajors != null && opponentDraftMajors != null;
+        if (draftedStart) {
+            removeDraftedMajors(sharedMajorCards, playerDraftMajors);
+            removeDraftedMajors(sharedMajorCards, opponentDraftMajors);
+        }
 
-            for (int j = 0; j < 5; j++) {
-                Card drawn = p.deck.draw();
-                addDrawnCardToHand(p, drawn);
+        for (int i = 0; i < sharedMajorCards.size; i++) {
+            startingDecks.get(i % players.length).add(sharedMajorCards.get(i));
+        }
+
+        for (int i = 0; i < players.length; i++) {
+            Player p = players[i];
+            Array<Card> startingDeck = startingDecks.get(i);
+            if (draftedStart) {
+                Array<Card> draftedMajors = i == 0 ? playerDraftMajors : opponentDraftMajors;
+                for (Card card : draftedMajors) addDrawnCardToHand(p, card);
+                addStartingNumberCards(p, startingDeck, 3);
+            }
+            startingDeck.shuffle();
+            for (Card card : startingDeck) p.deck.add(card);
+
+            if (!draftedStart) {
+                for (int j = 0; j < GameConfig.HAND_START_COUNT; j++) {
+                    addDrawnCardToHand(p, p.deck.draw());
+                }
             }
         }
         currentPlayerIndex = 0;
@@ -270,8 +303,47 @@ public class GameState {
         log("[게임 시작] 테스트 게임 초기화: " + suit);
     }
 
+    private void removeDraftedMajors(Array<Card> pool, Array<Card> drafted) {
+        for (Card selected : drafted) {
+            for (int i = pool.size - 1; i >= 0; i--) {
+                if (pool.get(i).id.equals(selected.id)) {
+                    pool.removeIndex(i);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void addStartingNumberCards(Player player, Array<Card> startingDeck, int count) {
+        Array<Card> numberCards = new Array<>();
+        for (Card card : startingDeck) {
+            if (card.type == Card.ArcanaType.MINOR && isNumberCard(card)) {
+                numberCards.add(card);
+            }
+        }
+        numberCards.shuffle();
+        for (int i = 0; i < count && i < numberCards.size; i++) {
+            Card card = numberCards.get(i);
+            startingDeck.removeValue(card, true);
+            addDrawnCardToHand(player, card);
+        }
+    }
+
+    private boolean isNumberCard(Card card) {
+        return !card.id.endsWith("/Page")
+            && !card.id.endsWith("/Knight")
+            && !card.id.endsWith("/Queen")
+            && !card.id.endsWith("/King");
+    }
+
     public Player currentPlayer() {
         return players[currentPlayerIndex];
+    }
+
+    private Suit randomDifferentSuit(Suit selected) {
+        Array<Suit> choices = new Array<>(Suit.values());
+        choices.removeValue(selected, true);
+        return choices.random();
     }
 
     public int effectiveCostFor(Player player, Card card) {
@@ -804,8 +876,11 @@ public class GameState {
                 if (GameConfig.DEV_AUTO_P1 && currentPlayerIndex == 1) {
                     Player p1 = currentPlayer();
                     int count = Math.min(3, p1.hand.size);
-                    for (int i = 0; i < count; i++) {
-                        p1.field.add(p1.hand.removeIndex(0));
+                    for (int i = p1.hand.size - 1; i >= 0 && count > 0; i--) {
+                        Card card = p1.hand.get(i);
+                        if (p1.majorBlocked && card.type == Card.ArcanaType.MAJOR) continue;
+                        p1.field.add(p1.hand.removeIndex(i));
+                        count--;
                     }
                 }
                 break;

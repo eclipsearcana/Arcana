@@ -1,6 +1,8 @@
 package io.eclipse.arcana;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.utils.Array;
+import io.eclipse.arcana.model.Card;
 import io.eclipse.arcana.model.Suit;
 
 public class Core extends Game {
@@ -28,6 +30,22 @@ public class Core extends Game {
 
     public void startGame(Suit suit) {
         setScreen(new MainScreen(this, debugContext, suit));
+    }
+
+    public void startGame(Suit suit, Array<Card> playerDraftMajors, Array<Card> opponentDraftMajors) {
+        setScreen(new MainScreen(this, debugContext, suit, playerDraftMajors, opponentDraftMajors));
+    }
+
+    public void showTutorial() {
+        setScreen(new TutorialScreen(this));
+    }
+
+    public void showDeckSelect() {
+        setScreen(new MinorDeckSelectScreen(this));
+    }
+
+    public void showDraft(Suit suit) {
+        setScreen(new DraftScreen(this, suit));
     }
 
     public void showTitleScreen() {

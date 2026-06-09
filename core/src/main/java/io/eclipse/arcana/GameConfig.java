@@ -3,8 +3,8 @@ package io.eclipse.arcana;
 public class GameConfig {
 
     // ── 게임 규칙 ─────────────────────────────────────────────────────────────
-    public static final int   PLAYER_HP_START   = 250;
-    public static final int   COST_DEFAULT_INIT = 6;
+    public static final int   PLAYER_HP_START   = 150;
+    public static final int   COST_DEFAULT_INIT = 8;
     public static final int   COST_MAX          = 10;
     public static final float TURN_TIME         = 20f;
     public static final int   HAND_START_COUNT  = 5;

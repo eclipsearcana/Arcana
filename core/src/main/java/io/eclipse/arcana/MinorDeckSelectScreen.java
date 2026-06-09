@@ -120,7 +120,7 @@ public class MinorDeckSelectScreen implements Screen {
 
         if (transitionAlpha >= 1f) {
             Suit suit = SUITS[selectedIndex];
-            game.startGame(suit);
+            game.showDraft(suit);
             dispose();
         }
     }
