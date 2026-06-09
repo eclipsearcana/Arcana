@@ -10,6 +10,27 @@ import io.eclipse.arcana.model.effect.CardEffect;
 import io.eclipse.arcana.model.effect.EffectRegistry;
 
 public class GameState {
+    public interface CardSelectionHandler {
+        void onSelected(Array<Card> cards);
+    }
+
+    public static class CardSelectionRequest {
+        public final String title;
+        public final String instruction;
+        public final Array<Card> candidates = new Array<>();
+        public final int count;
+        private final CardSelectionHandler handler;
+
+        public CardSelectionRequest(String title, String instruction, Array<Card> candidates,
+                                    int count, CardSelectionHandler handler) {
+            this.title = title;
+            this.instruction = instruction;
+            this.candidates.addAll(candidates);
+            this.count = count;
+            this.handler = handler;
+        }
+    }
+
     public static class PendingEffect {
         public final Card card;
         public final Player caster;
@@ -46,6 +67,9 @@ public class GameState {
     public int roundCount = 0;
     private final List<String> debugLog = new ArrayList<>();
     private static final ThreadLocal<GameState> ACTIVE_LOG_STATE = new ThreadLocal<>();
+    public CardSelectionRequest pendingSelection;
+    private final Array<CardSelectionRequest> queuedSelections = new Array<>();
+    private Player resolvingStagedPlayer;
 
     public GameState() {
         setupTest(Suit.SWORDS);
@@ -163,6 +187,9 @@ public class GameState {
     }
 
     public void setupTest(Suit suit) {
+        pendingSelection = null;
+        queuedSelections.clear();
+        resolvingStagedPlayer = null;
         for (int i = 0; i < players.length; i++) {
             Player p = players[i];
 
@@ -171,6 +198,8 @@ public class GameState {
             p.cost = GameConfig.COST_DEFAULT_INIT;
             p.costInit = GameConfig.COST_DEFAULT_INIT;
             p.carryOver = false;
+            p.saveHalfCostNextTurn = false;
+            p.mustPlayNextDraw = false;
             p.costIncreasedOnPlay = false;
             p.allCardsCostZeroThisTurn = false;
             p.randomTargetsThisTurn = false;
@@ -195,9 +224,16 @@ public class GameState {
             p.effectsSwapped = false;
             p.cannotBeTargeted = false;
             p.forceReversedDraw = false;
+            p.forceNextDrawReversed = false;
             p.drawBlocked = false;
+            p.healMultiplier = 1;
+            p.healBlocked = false;
+            p.incomingDamageMultiplier = 1f;
+            p.reflectRatio = 0f;
+            p.currentCard = null;
 
             p.nextTurnDrawModifier = 0;
+            p.nextTurnCostModifier = 0;
             p.nextTurnPlayLimit = -1;
             p.playLimit = -1;
             p.wandsPlayedThisTurn = 0;
@@ -206,7 +242,9 @@ public class GameState {
             p.pentaclesPlayedThisTurn = 0;
 
             p.field.clear();
+            p.stagedCards.clear();
             p.graveyard.clear();
+            p.removedCards.clear();
 
             p.chosenSuit = suit;
             p.hand.clear();
@@ -248,10 +286,68 @@ public class GameState {
         return playCardFromHand(player, handIndex, true);
     }
 
+    public int stagedCost(Player player) {
+        int total = 0;
+        for (Card card : player.stagedCards) total += effectiveCostFor(player, card);
+        return total;
+    }
+
+    public boolean stageCardFromHand(Player player, int handIndex) {
+        if (pendingSelection != null || resolvingStagedPlayer != null) return false;
+        if (phase != GamePhase.MAIN || turnPhase != TurnPhase.ACTION || player != currentPlayer()) return false;
+        if (handIndex < 0 || handIndex >= player.hand.size) return false;
+
+        Card card = player.hand.get(handIndex);
+        if (card.lockedInHand || (player.majorBlocked && card.type == Card.ArcanaType.MAJOR)) return false;
+        if (player.playLimit == 0
+            || (player.playLimit > 0 && player.stagedCards.size >= player.playLimit)) return false;
+        if (!player.canOverpayCostWithHpThisTurn
+            && stagedCost(player) + effectiveCostFor(player, card) > player.cost) return false;
+
+        player.hand.removeIndex(handIndex);
+        player.stagedCards.add(card);
+        return true;
+    }
+
+    public boolean unstageCard(Player player, int stagedIndex) {
+        if (pendingSelection != null || resolvingStagedPlayer != null) return false;
+        if (stagedIndex < 0 || stagedIndex >= player.stagedCards.size) return false;
+        player.hand.add(player.stagedCards.removeIndex(stagedIndex));
+        return true;
+    }
+
+    public void unstageAll(Player player) {
+        while (player.stagedCards.size > 0) {
+            player.hand.add(player.stagedCards.removeIndex(0));
+        }
+    }
+
+    public void resolveStagedCards(Player player) {
+        if (pendingSelection != null || resolvingStagedPlayer != null || player.stagedCards.size == 0) return;
+        resolvingStagedPlayer = player;
+        continueResolvingStagedCards();
+    }
+
+    private void continueResolvingStagedCards() {
+        Player player = resolvingStagedPlayer;
+        if (player == null || pendingSelection != null) return;
+
+        while (player.stagedCards.size > 0 && pendingSelection == null) {
+            Card card = player.stagedCards.removeIndex(0);
+            player.hand.add(card);
+            playCardFromHand(player, player.hand.size - 1);
+        }
+
+        if (player.stagedCards.size == 0 && pendingSelection == null) {
+            resolvingStagedPlayer = null;
+        }
+    }
+
     private Card playCardFromHand(Player player, int handIndex, boolean forced) {
         if (handIndex < 0 || handIndex >= player.hand.size) return null;
 
         Card card = player.hand.get(handIndex);
+        if (card.lockedInHand) return null;
         int paidCost = forced ? 0 : effectiveCostFor(player, card);
 
         if (!forced) {
@@ -279,6 +375,7 @@ public class GameState {
         boolean delayEffect = player.delayEffectsThisTurn;
         Player refundReceiver = player.effectCostRefundReceiver;
         float failChance = player.effectFailChanceThisTurn;
+        boolean effectDelayed = false;
 
         player.hand.removeIndex(handIndex);
         countSuitPlayed(player, card);
@@ -294,12 +391,15 @@ public class GameState {
                     refundReceiver.cost = Math.min(refundReceiver.cost + paidCost, refundReceiver.costMax);
                 }
                 log("[정의 역방향] " + card.name + " 효과 무효화");
+            } else if (card.isIllusion && Math.random() < 0.5f) {
+                log("[환영 실패] " + card.name + " 효과가 사라졌습니다.");
             } else if (failChance > 0f && Math.random() < failChance) {
                 log("[힘 역방향] " + card.name + " 효과 발동 실패");
             } else {
                 Player target = chooseTarget(player);
                 if (delayEffect) {
                     player.delayedEffects.add(new PendingEffect(card, player, target, effectsSwapped, mirrorEffect));
+                    effectDelayed = true;
                     log("[심판 역방향] " + card.name + " 효과가 1턴 지연");
                 } else {
                     executeCardEffect(effect, card, player, target, effectsSwapped);
@@ -309,6 +409,7 @@ public class GameState {
                 }
             }
         }
+        if (!effectDelayed) resetTemporaryPower(card);
 
         if (card.isExtinction) {
             player.removedCards.add(card);
@@ -361,6 +462,23 @@ public class GameState {
         }
     }
 
+    public void replayUprightEffect(Card card, Player caster, Player target) {
+        CardEffect effect = EffectRegistry.get(card.id);
+        if (effect == null) return;
+
+        Card previousCard = caster.currentCard;
+        GameState previousLogState = ACTIVE_LOG_STATE.get();
+        caster.currentCard = card;
+        ACTIVE_LOG_STATE.set(this);
+        try {
+            effect.executeUpright(this, caster, target);
+        } finally {
+            caster.currentCard = previousCard;
+            if (previousLogState == null) ACTIVE_LOG_STATE.remove();
+            else ACTIVE_LOG_STATE.set(previousLogState);
+        }
+    }
+
     private void countSuitPlayed(Player player, Card card) {
         if (card.suit == Suit.WANDS) player.wandsPlayedThisTurn++;
         if (card.suit == Suit.CUPS) player.cupsPlayedThisTurn++;
@@ -396,6 +514,7 @@ public class GameState {
 
         int moved = player.field.size;
         for (Card card : player.field) {
+            clearTransientCardState(card);
             player.graveyard.add(new GraveyardCard(card, GameConfig.USED_CARD_RETURN_TURNS));
         }
         player.field.clear();
@@ -424,10 +543,81 @@ public class GameState {
     }
 
     public void refillHand(Player player, int count) {
-        player.hand.clear();
+        discardHand(player);
         for (int i = 0; i < count; i++) {
             drawCardIgnoringLocks(player);
         }
+    }
+
+    public void discardCardFromHand(Player player, Card card) {
+        int index = -1;
+        for (int i = 0; i < player.hand.size; i++) {
+            if (player.hand.get(i) == card) {
+                index = i;
+                break;
+            }
+        }
+        if (index < 0) return;
+        player.hand.removeIndex(index);
+        clearTransientCardState(card);
+        player.graveyard.add(new GraveyardCard(card, GameConfig.USED_CARD_RETURN_TURNS));
+    }
+
+    public void discardRandomCard(Player player) {
+        if (player.hand.size == 0) return;
+        discardCardFromHand(player, player.hand.get(new java.util.Random().nextInt(player.hand.size)));
+    }
+
+    public void discardHand(Player player) {
+        Array<Card> discarded = new Array<>();
+        discarded.addAll(player.hand);
+        player.hand.clear();
+        for (Card card : discarded) {
+            clearTransientCardState(card);
+            player.graveyard.add(new GraveyardCard(card, GameConfig.USED_CARD_RETURN_TURNS));
+        }
+    }
+
+    private void clearTransientCardState(Card card) {
+        card.lockedInHand = false;
+        card.turnCostModifier = 0;
+        resetTemporaryPower(card);
+        if (card.effectMark == Card.EffectMark.LOCKED
+            || (card.costModifier == 0
+                && (card.effectMark == Card.EffectMark.POSITIVE
+                    || card.effectMark == Card.EffectMark.NEGATIVE))) {
+            card.effectMark = Card.EffectMark.NONE;
+        }
+    }
+
+    private void resetTemporaryPower(Card card) {
+        if (!card.powerMultiplierExpiresEndOfTurn) return;
+        card.powerMultiplier = 1f;
+        card.powerMultiplierExpiresEndOfTurn = false;
+    }
+
+    public void requestCardSelection(String title, String instruction, Array<Card> candidates,
+                                     int count, CardSelectionHandler handler) {
+        if (candidates == null || candidates.size == 0 || count <= 0) {
+            handler.onSelected(new Array<Card>());
+            return;
+        }
+        CardSelectionRequest request = new CardSelectionRequest(
+            title, instruction, candidates, Math.min(count, candidates.size), handler);
+        if (pendingSelection == null) pendingSelection = request;
+        else queuedSelections.add(request);
+    }
+
+    public void completeCardSelection(Array<Card> selected) {
+        if (pendingSelection == null) return;
+        CardSelectionRequest request = pendingSelection;
+        pendingSelection = null;
+        request.handler.onSelected(selected);
+        checkWinCondition();
+        if (pendingSelection == null && queuedSelections.size > 0) {
+            pendingSelection = queuedSelections.removeIndex(0);
+        }
+        continueResolvingStagedCards();
     }
 
     private void resolveDelayedEffects(Player player) {
@@ -445,6 +635,7 @@ public class GameState {
             if (delayed.mirrorEffect) {
                 executeCardEffect(effect, delayed.card, delayed.caster, delayed.caster, delayed.effectsSwapped);
             }
+            resetTemporaryPower(delayed.card);
         }
 
         checkWinCondition();
@@ -472,6 +663,7 @@ public class GameState {
         player.effectCostRefundReceiver = null;
         player.drawBlocked = false;
         player.forceReversedDraw = false;
+        player.forceNextDrawReversed = false;
         player.mustPlayNextDraw = false;
         player.costIncreasedOnPlay = false;
         player.effectFailChanceThisTurn = 0f;
@@ -480,7 +672,7 @@ public class GameState {
         player.nextTurnPlayLimit = -1;
         player.handLockTurns = 0;
         player.healBlocked = false;
-        player.incomingDamageMultiplier = Math.min(player.incomingDamageMultiplier, 1.0f);
+        player.incomingDamageMultiplier = 1.0f;
         if (player.nextTurnDrawModifier < 0) player.nextTurnDrawModifier = 0;
         if (player.nextTurnCostModifier < 0) player.nextTurnCostModifier = 0;
         player.nextTurnFixedCost = -1;
@@ -565,12 +757,13 @@ public class GameState {
     }
 
     public void update(float delta) {
-        if (phase != GamePhase.MAIN) return;
+        if (phase != GamePhase.MAIN || pendingSelection != null) return;
         turnTimer -= delta;
         if (turnTimer <= 0f) advanceTurnPhase();
     }
 
     public void advanceTurnPhase() {
+        if (pendingSelection != null) return;
         switch (turnPhase) {
             case DRAW:
                 Player p = currentPlayer();
@@ -584,10 +777,15 @@ public class GameState {
                 int drawCount = 1 + p.nextTurnDrawModifier;
                 p.nextTurnDrawModifier = 0;
                 drawCount = Math.max(0, drawCount);
+                if (p.forceNextDrawReversed) {
+                    p.forceReversedDraw = true;
+                    p.forceNextDrawReversed = false;
+                }
                 for (int i = 0; i < drawCount; i++) {
                     drawCard(p);
                 }
                 p.drawBlocked = false;
+                p.forceReversedDraw = false;
                 if (p.handLockTurns > 0) p.handLockTurns--;
                 expireFakeShield(p);
 
@@ -612,11 +810,13 @@ public class GameState {
                 }
                 break;
             case ACTION:
+                unstageAll(currentPlayer());
                 turnPhase = TurnPhase.END;
                 turnTimer = GameConfig.TURN_TIME;
                 break;
             case END:
                 Player current = currentPlayer();
+                unstageAll(current);
 
                 if (current.saveHalfCostNextTurn) {
                     current.nextTurnCostModifier += (current.cost / 2);
@@ -656,7 +856,8 @@ public class GameState {
                 current.cupsPlayedThisTurn = 0;
                 current.swordsPlayedThisTurn = 0;
                 current.pentaclesPlayedThisTurn = 0;
-                current.reflectRatio = 0;
+                current.healMultiplier = 1;
+                current.incomingDamageMultiplier = 1f;
 
                 moveFieldToGraveyard(current);
 
@@ -665,7 +866,17 @@ public class GameState {
                 }
 
                 current.carryOver = false;
-                for (Card c : current.hand) c.costModifier = 0;
+                for (Card c : current.hand) {
+                    c.lockedInHand = false;
+                    c.turnCostModifier = 0;
+                    resetTemporaryPower(c);
+                    if (c.effectMark == Card.EffectMark.LOCKED) c.effectMark = Card.EffectMark.NONE;
+                    if (c.costModifier == 0
+                        && (c.effectMark == Card.EffectMark.POSITIVE
+                            || c.effectMark == Card.EffectMark.NEGATIVE)) {
+                        c.effectMark = Card.EffectMark.NONE;
+                    }
+                }
 
                 currentPlayerIndex = 1 - currentPlayerIndex;
 

@@ -5,6 +5,7 @@ import io.eclipse.arcana.GameConfig;
 public class Card {
 
     public enum ArcanaType { MAJOR, MINOR }
+    public enum EffectMark { NONE, POSITIVE, NEGATIVE, LOCKED, SPECIAL }
 
     public final String id;
     public final String name;
@@ -16,6 +17,9 @@ public class Card {
     public boolean isRevealed = false;
 
     public int costModifier = 0;
+    public int turnCostModifier = 0;
+    public boolean lockedInHand = false;
+    public EffectMark effectMark = EffectMark.NONE;
 
     public boolean reversed;
     public int reverseGraceTurns = 0;
@@ -54,7 +58,7 @@ public class Card {
     }
 
     public int effectiveCost() {
-        return Math.max(0, cost + costModifier);
+        return Math.max(0, cost + costModifier + turnCostModifier);
     }
 
     // 광대
@@ -63,11 +67,14 @@ public class Card {
 
     // 마법사
     public float powerMultiplier = 1.0f;
+    public boolean powerMultiplierExpiresEndOfTurn = false;
     public boolean isIllusion = false;
 
     public Card copy() {
         Card newCard = new Card(this.id, this.name, this.type, this.suit, this.cost, this.isExtinction);
         newCard.isCloned = true;
+        newCard.reversed = this.reversed;
+        newCard.effectMark = EffectMark.SPECIAL;
         return newCard;
     }
 

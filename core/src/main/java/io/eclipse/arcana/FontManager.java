@@ -7,6 +7,8 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFont
 import com.badlogic.gdx.utils.Disposable;
 
 public class FontManager implements Disposable {
+    private static final float FONT_SUPERSAMPLE = 2f;
+
     private static final String[] FONT_CANDIDATES = {
         "fonts/nanum-square-neo/NanumSquareNeo-bRg.ttf",
         "fonts/nanum-square-round/NanumSquareRoundR.ttf",
@@ -38,6 +40,10 @@ public class FontManager implements Disposable {
     public final BitmapFont normal;
     /** ~40 world-units — 게임오버 타이틀 */
     public final BitmapFont title;
+    /** ~14 world-units — 툴팁 본문 */
+    public final BitmapFont tooltipBody;
+    /** ~20 world-units — 툴팁 제목 */
+    public final BitmapFont tooltipTitle;
 
     private final FreeTypeFontGenerator generator;
 
@@ -50,6 +56,8 @@ public class FontManager implements Disposable {
         small  = make(Math.round(11 * pxPerUnit));
         normal = make(Math.round(16 * pxPerUnit));
         title  = make(Math.round(40 * pxPerUnit));
+        tooltipBody = make(Math.round(9 * pxPerUnit));
+        tooltipTitle = make(Math.round(13 * pxPerUnit));
     }
 
     private FreeTypeFontGenerator loadGenerator() {
@@ -66,7 +74,7 @@ public class FontManager implements Disposable {
 
     private BitmapFont make(int px) {
         FreeTypeFontParameter p = new FreeTypeFontParameter();
-        p.size = Math.max(8, px);
+        p.size = Math.max(8, Math.round(px * FONT_SUPERSAMPLE));
         p.characters = FreeTypeFontGenerator.DEFAULT_CHARS + KOREAN_UI_CHARS;
         p.incremental = true;  // 한글 등 유니코드 글리프를 필요할 때만 생성
         p.kerning = true;
@@ -75,6 +83,7 @@ public class FontManager implements Disposable {
 
         BitmapFont font = generator.generateFont(p);
         font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
+        font.getData().setScale(1f / FONT_SUPERSAMPLE);
         return font;
     }
 
@@ -83,6 +92,8 @@ public class FontManager implements Disposable {
         small.dispose();
         normal.dispose();
         title.dispose();
+        tooltipBody.dispose();
+        tooltipTitle.dispose();
         generator.dispose();  // incremental 폰트는 generator보다 먼저 dispose
     }
 }

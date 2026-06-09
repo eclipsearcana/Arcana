@@ -10,6 +10,8 @@ import io.eclipse.arcana.model.Suit;
 
 public class ArcanaAssets {
 
+    private boolean queued;
+
     private final AssetManager manager = new AssetManager(new FileHandleResolver() {
         @Override
         public FileHandle resolve(String fileName) {
@@ -35,6 +37,29 @@ public class ArcanaAssets {
     };
 
     public void queueAll() {
+        if (queued) return;
+        queued = true;
+
+        queueTitleSet("TitleA/", "A");
+        queueTitleSet("TitleB/", "B");
+        queueTexture("choose/background_choose.png");
+        queueTexture("choose/wands.png");
+        queueTexture("choose/wands_back.png");
+        queueTexture("choose/WANDS_transparent.png");
+        queueTexture("choose/WANDS_features.png");
+        queueTexture("choose/swords.png");
+        queueTexture("choose/swords_back.png");
+        queueTexture("choose/SWORDS_transparent.png");
+        queueTexture("choose/SWORDS_features.png");
+        queueTexture("choose/pentacles.png");
+        queueTexture("choose/pentacles_back.png");
+        queueTexture("choose/PENTACLES_transparent.png");
+        queueTexture("choose/PENTACLES_features.png");
+        queueTexture("choose/cups.png");
+        queueTexture("choose/cups_back.png");
+        queueTexture("choose/CUPS_transparent.png");
+        queueTexture("choose/CUPS_features.png");
+
         // 배경 일러스트
         String bg = "ui/Game_Background.png";
         if (fileExists(bg)) manager.load(bg, Texture.class);
@@ -89,8 +114,31 @@ public class ArcanaAssets {
         }
     }
 
+    private void queueTitleSet(String folder, String suffix) {
+        queueTexture(folder + "title" + suffix + ".png");
+        queueTexture(folder + "logo" + suffix + ".png");
+        queueTexture(folder + "start" + suffix + ".png");
+        queueTexture(folder + "settings" + suffix + ".png");
+        queueTexture(folder + "exit" + suffix + ".png");
+        queueTexture(folder + "star" + suffix + ".png");
+    }
+
+    private void queueTexture(String path) {
+        if (fileExists(path) && !manager.isLoaded(path)) {
+            manager.load(path, Texture.class);
+        }
+    }
+
     public float update() {
         manager.update();
+        return manager.getProgress();
+    }
+
+    public boolean updateStep() {
+        return manager.update();
+    }
+
+    public float progress() {
         return manager.getProgress();
     }
 
@@ -112,6 +160,10 @@ public class ArcanaAssets {
     }
 
     public Texture cardCost(Card card) {
+        return cardCost(card, card.effectiveCost());
+    }
+
+    public Texture cardCost(Card card, int effectiveCost) {
         if (card.isCloned) {
             return manager.get("cards/major/Cost/Fool_Copy.png", Texture.class);
         }
@@ -134,9 +186,10 @@ public class ArcanaAssets {
             return manager.isLoaded(base) ? manager.get(base, Texture.class) : null;
         } else {
             String suitName = cap(card.suit.name());
-            String base = "cards/minor/Cost/" + suitName + "_" + card.cost + ".png";
+            int imageCost = effectiveCost >= 1 && effectiveCost <= 4 ? effectiveCost : card.cost;
+            String base = "cards/minor/Cost/" + suitName + "_" + imageCost + ".png";
 
-            if (card.reversed && card.cost == 4) {
+            if (card.reversed && imageCost == 4) {
                 String rev = "cards/minor/Cost/" + suitName + "_4_Reverse.png";
                 if (manager.isLoaded(rev)) return manager.get(rev, Texture.class);
             }
@@ -151,6 +204,16 @@ public class ArcanaAssets {
 
     public Texture background() {
         String path = "ui/Game_Background.png";
+        return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
+    }
+
+    public Texture chooseTexture(String name) {
+        String path = "choose/" + name + ".png";
+        return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
+    }
+
+    public Texture titleTexture(String folder, String name, String suffix) {
+        String path = folder + name + suffix + ".png";
         return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
     }
 

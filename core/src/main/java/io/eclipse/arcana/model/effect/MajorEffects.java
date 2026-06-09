@@ -188,10 +188,8 @@ public class MajorEffects {
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             int drawCount = caster.hand.size;
-            caster.hand.clear();
-            for (int i = 0; i < drawCount; i++) {
-                state.drawCard(caster);
-            }
+            state.discardHand(caster);
+            for (int i = 0; i < drawCount; i++) state.drawCardIgnoringLocks(caster);
             state.log("[전차 역방향] 손패 " + drawCount + "장 교체");
         }
     }
@@ -222,8 +220,8 @@ public class MajorEffects {
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
-            caster.forceReversedDraw = true;
-            state.log("[은둔자 역방향] 이번 턴 드로우 카드는 모두 역방향");
+            caster.forceNextDrawReversed = true;
+            state.log("[은둔자 역방향] 다음 드로우 카드는 모두 역방향");
         }
     }
 
@@ -259,7 +257,7 @@ public class MajorEffects {
             int desiredSize = Math.min(caster.hand.size, GameConfig.HAND_MAX);
 
             while (target.hand.size > desiredSize) {
-                target.hand.removeIndex(new Random().nextInt(target.hand.size));
+                state.discardRandomCard(target);
             }
 
             while (target.hand.size < desiredSize && target.hand.size < GameConfig.HAND_MAX) {
@@ -283,22 +281,28 @@ public class MajorEffects {
     public static class HangedMan extends BaseCardEffect {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
-            int amount = (int)(caster.hp * 0.1);
-            damage(caster, caster, amount);
-
+            int amount = Math.max(1, (int) (caster.hp * 0.1f));
+            sacrificeHp(caster, amount);
             int cardCount = caster.hand.size;
-            caster.hand.clear();
+            state.discardHand(caster);
+            for (int i = 0; i < cardCount; i++) state.drawCardIgnoringLocks(caster);
 
-            for (int i = 0; i < cardCount; i++) {
-                caster.deck.draw();
-            }
-
-            state.log("[매달린 사람] HP 10% 감소 및 덱 초기화");
+            state.log("[매달린 사람] HP 10% 희생 및 손패 재드로우");
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
-
+            com.badlogic.gdx.utils.Array<Card> choices = new com.badlogic.gdx.utils.Array<>();
+            choices.addAll(caster.hand);
+            choices.shuffle();
+            while (choices.size > 3) choices.pop();
+            state.requestCardSelection("The Hanged Man Reversed", "이번 턴 손패에 묶을 카드 1장을 선택하세요.",
+                choices, 1, selected -> {
+                    if (selected.size == 0) return;
+                    Card card = selected.first();
+                    card.lockedInHand = true;
+                    card.effectMark = Card.EffectMark.LOCKED;
+                });
         }
     }
 

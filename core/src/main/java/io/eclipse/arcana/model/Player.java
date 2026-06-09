@@ -15,6 +15,7 @@ public class Player {
     public int costMax = 10;
     public boolean carryOver = false; // 코스트 이월
     public final Array<Card> field = new Array<>();
+    public final Array<Card> stagedCards = new Array<>();
     public final Array<GameState.GraveyardCard> graveyard = new Array<>();
 
     public boolean saveHalfCostNextTurn = false;
@@ -31,6 +32,7 @@ public class Player {
     public boolean effectsSwapped = false; // 교황 역카드
     public boolean cannotBeTargeted = false; // 타겟팅 불가
     public boolean forceReversedDraw = false;
+    public boolean forceNextDrawReversed = false;
     public boolean drawBlocked = false;
     public int playLimit = -1;
     public boolean costIncreasedOnPlay = false;

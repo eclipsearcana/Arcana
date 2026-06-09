@@ -93,14 +93,14 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 for (Card c : caster.hand) {
-                    if (c.suit == Suit.WANDS) c.costModifier -= 1;
+                    if (c.suit == Suit.WANDS) c.turnCostModifier -= 1;
                 }
             }
 
             @Override
             public void executeReversed(GameState state, Player caster, Player target) {
                 for (Card c : caster.hand) {
-                    if (c.suit == Suit.WANDS) c.costModifier += 1;
+                    if (c.suit == Suit.WANDS) c.turnCostModifier += 1;
                 }
             }
         }
@@ -109,13 +109,13 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 damage(caster, target, 14);
-                damage(caster, caster, 10);
+                sacrificeHp(caster, 10);
             }
 
             @Override
             public void executeReversed(GameState state, Player caster, Player target) {
                 damage(caster, target, 20);
-                damage(caster, caster, 25);
+                sacrificeHp(caster, 25);
             }
         }
 
@@ -124,14 +124,14 @@ public class MinorEffects {
             public void executeUpright(GameState state, Player caster, Player target) {
                 damage(caster, target, 13);
                 for (Card c : caster.hand) {
-                    if (c.suit == Suit.WANDS) c.costModifier -= 1;
+                    if (c.suit == Suit.WANDS) c.turnCostModifier -= 1;
                 }
             }
 
             @Override
             public void executeReversed(GameState state, Player caster, Player target) {
                 damage(caster, target, 17);
-                damage(caster, caster, 17);
+                sacrificeHp(caster, 17);
             }
         }
 
@@ -142,7 +142,7 @@ public class MinorEffects {
                     if (c.suit == Suit.WANDS && !c.id.endsWith("/King")) {
                         CardEffect effect = EffectRegistry.get(c.id);
                         if (effect != null) {
-                            effect.executeUpright(state, caster, target);
+                            state.replayUprightEffect(c, caster, target);
                         }
                     }
                 }
@@ -156,7 +156,7 @@ public class MinorEffects {
                     if (lastCard.suit == Suit.WANDS && !lastCard.id.endsWith("/King")) {
                         CardEffect effect = EffectRegistry.get(lastCard.id);
                         if (effect != null) {
-                            effect.executeUpright(state, caster, target);
+                            state.replayUprightEffect(lastCard, caster, target);
                         }
                         break;
                     }
@@ -187,7 +187,7 @@ public class MinorEffects {
             public void executeUpright(GameState state, Player caster, Player target) {
                 if (caster.hand.size > 0) {
                     Random rand = new Random();
-                    caster.hand.get(rand.nextInt(caster.hand.size)).costModifier -= 1;
+                    caster.hand.get(rand.nextInt(caster.hand.size)).turnCostModifier -= 1;
                 }
             }
         }
@@ -216,7 +216,7 @@ public class MinorEffects {
                 if (size == 0) return;
 
                 if (size == 1) {
-                    caster.hand.get(0).costModifier -= 1;
+                    caster.hand.get(0).turnCostModifier -= 1;
                     return;
                 }
 
@@ -228,8 +228,8 @@ public class MinorEffects {
                     idx2 = rand.nextInt(size);
                 } while (idx1 == idx2);
 
-                caster.hand.get(idx1).costModifier -= 1;
-                caster.hand.get(idx2).costModifier -= 1;
+                caster.hand.get(idx1).turnCostModifier -= 1;
+                caster.hand.get(idx2).turnCostModifier -= 1;
             }
         }
 
@@ -270,14 +270,14 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 for (Card c : caster.hand) {
-                    if (c.suit == Suit.CUPS) c.costModifier -= 1;
+                    if (c.suit == Suit.CUPS) c.turnCostModifier -= 1;
                 }
             }
 
             @Override
             public void executeReversed(GameState state, Player caster, Player target) {
                 for (Card c : caster.hand) {
-                    if (c.suit == Suit.CUPS) c.costModifier += 1;
+                    if (c.suit == Suit.CUPS) c.turnCostModifier += 1;
                 }
             }
         }
@@ -292,7 +292,7 @@ public class MinorEffects {
             public void executeReversed(GameState state, Player caster, Player target) {
                 caster.healMultiplier = 2;
                 for (int i = 0; i < 2; i++) {
-                    if (caster.hand.size > 0) caster.hand.removeIndex(new Random().nextInt(caster.hand.size));
+                    state.discardRandomCard(caster);
                 }
             }
         }
@@ -332,7 +332,7 @@ public class MinorEffects {
                 for (Card c : caster.field) {
                     if (c.suit == Suit.CUPS && !c.id.endsWith("/King")) {
                         CardEffect effect = EffectRegistry.get(c.id);
-                        if (effect != null) effect.executeUpright(state, caster, target);
+                        if (effect != null) state.replayUprightEffect(c, caster, target);
                     }
                 }
                 caster.cost = 0;
@@ -353,7 +353,7 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 damage(caster, target, 3);
-                reduceCost(caster, 1);
+                reduceCost(target, 1);
             }
         }
 
@@ -375,10 +375,7 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 damage(caster, target, 6);
-                if (target.hand.size > 0) {
-                    Random rand = new Random();
-                    target.hand.removeIndex(rand.nextInt(target.hand.size));
-                }
+                state.discardRandomCard(target);
             }
         }
 
@@ -432,14 +429,14 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 for (Card c : caster.hand) {
-                    if (c.suit == Suit.SWORDS) c.costModifier -= 1;
+                    if (c.suit == Suit.SWORDS) c.turnCostModifier -= 1;
                 }
             }
 
             @Override
             public void executeReversed(GameState state, Player caster, Player target) {
                 for (Card c : caster.hand) {
-                    if (c.suit == Suit.SWORDS) c.costModifier += 1;
+                    if (c.suit == Suit.SWORDS) c.turnCostModifier += 1;
                 }
             }
         }
@@ -457,7 +454,8 @@ public class MinorEffects {
                         unrevealed.get(i).isRevealed = true;
                     }
 
-                    target.hand.removeIndex(new Random().nextInt(target.hand.size));
+                    Card removed = target.hand.removeIndex(new Random().nextInt(target.hand.size));
+                    target.removedCards.add(removed);
                 }
             }
 
@@ -465,7 +463,7 @@ public class MinorEffects {
             public void executeReversed(GameState state, Player caster, Player target) {
                 damage(caster, target, 13);
                 if (caster.hand.size > 0) {
-                    caster.hand.removeIndex(new Random().nextInt(caster.hand.size));
+                    state.discardRandomCard(caster);
                 }
             }
         }
@@ -489,20 +487,16 @@ public class MinorEffects {
             public void executeUpright(GameState state, Player caster, Player target) {
                 for (Card c : caster.field) {
                     if (c.suit == Suit.SWORDS && !c.id.endsWith("/King")) {
-                        CardEffect effect = EffectRegistry.get(c.id);
-                        if (effect != null) effect.executeUpright(state, caster, target);
+                        applySwordsInterference(state, caster, target, c);
                     }
                 }
             }
 
             @Override
             public void executeReversed(GameState state, Player caster, Player target) {
-                for (int i = caster.field.size - 1; i >= 0; i--) {
-                    Card lastCard = caster.field.get(i);
-                    if (lastCard.suit == Suit.SWORDS && !lastCard.id.endsWith("/King")) {
-                        CardEffect effect = EffectRegistry.get(lastCard.id);
-                        if (effect != null) effect.executeUpright(state, caster, caster);
-                        break;
+                for (Card c : caster.field) {
+                    if (c.suit == Suit.SWORDS && !c.id.endsWith("/King")) {
+                        applySwordsInterference(state, caster, caster, c);
                     }
                 }
             }
@@ -573,7 +567,7 @@ public class MinorEffects {
         public static class Seven extends BaseCardEffect {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
-                int costSum = 0;
+                int costSum = caster.currentCard == null ? 0 : caster.currentCard.cost;
                 for (Card c : caster.field) {
                     costSum += c.cost;
                 }
@@ -594,7 +588,7 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 for (Card c : caster.hand) {
-                    if (c.suit == Suit.PENTACLES) c.costModifier -= 1;
+                    if (c.suit == Suit.PENTACLES) c.turnCostModifier -= 1;
                 }
                 damage(caster, target, 9);
             }
@@ -611,14 +605,14 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 for (Card c : caster.hand) {
-                    if (c.suit == Suit.PENTACLES) c.costModifier -= 1;
+                    if (c.suit == Suit.PENTACLES) c.turnCostModifier -= 1;
                 }
             }
 
             @Override
             public void executeReversed(GameState state, Player caster, Player target) {
                 for (Card c : caster.hand) {
-                    if (c.suit == Suit.PENTACLES) c.costModifier += 1;
+                    if (c.suit == Suit.PENTACLES) c.turnCostModifier += 1;
                 }
             }
         }
@@ -662,7 +656,7 @@ public class MinorEffects {
             @Override
             public void executeReversed(GameState state, Player caster, Player target) {
                 damage(caster, target, 15);
-                caster.hand.clear();
+                state.discardHand(caster);
                 caster.nextTurnDrawModifier = -99;
             }
         }
@@ -670,7 +664,7 @@ public class MinorEffects {
         public static class King extends BaseCardEffect {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
-                int sum = 0;
+                int sum = caster.currentCard == null ? 0 : caster.currentCard.cost;
                 for (Card c : caster.field) {
                     if (c.suit == Suit.PENTACLES && !c.id.endsWith("/King")) {
                         sum += c.cost;
@@ -681,13 +675,13 @@ public class MinorEffects {
 
             @Override
             public void executeReversed(GameState state, Player caster, Player target) {
-                int sum = 0;
+                int sum = caster.currentCard == null ? 0 : caster.currentCard.cost;
                 for (Card c : caster.field) {
                     if (c.suit == Suit.PENTACLES && !c.id.endsWith("/King")) {
                         sum += c.cost;
                     }
                 }
-                damage(caster, caster, sum * 2);
+                sacrificeHp(caster, sum * 2);
             }
         }
     }
@@ -702,6 +696,62 @@ public class MinorEffects {
         int revealCount = Math.min(count, hiddenCards.size);
         for (int i = 0; i < revealCount; i++) {
             hiddenCards.get(i).isRevealed = true;
+        }
+    }
+
+    private static void applySwordsInterference(GameState state, Player caster, Player affected, Card source) {
+        String rank = source.id.substring(source.id.lastIndexOf('/') + 1);
+        switch (rank) {
+            case "Two":
+                affected.cost = Math.max(0, affected.cost - 1);
+                break;
+            case "Five":
+                state.discardRandomCard(affected);
+                break;
+            case "Six":
+                affected.nextTurnDrawModifier -= 1;
+                break;
+            case "Seven":
+                if (affected.hand.size > 0) {
+                    Card stolen = affected.hand.removeIndex(new Random().nextInt(affected.hand.size));
+                    stolen.isRevealed = true;
+                    Player receiver = affected == caster ? state.getOpponent(caster) : caster;
+                    state.addTransferredCardToHand(receiver, stolen);
+                }
+                break;
+            case "Eight":
+                affected.cost = Math.max(0, affected.cost - 2);
+                break;
+            case "Nine":
+                revealRandomCards(affected.hand, 1);
+                break;
+            case "Ten":
+                affected.nextTurnPlayLimit = 1;
+                break;
+            case "Knight":
+                Array<Card> choices = new Array<>();
+                choices.addAll(affected.hand);
+                choices.shuffle();
+                while (choices.size > 2) choices.pop();
+                for (Card card : choices) card.isRevealed = true;
+                state.requestCardSelection("King of Swords", "소멸시킬 공개 카드 1장을 선택하세요.",
+                    choices, 1, selected -> {
+                        if (selected.size == 0) return;
+                        Card chosen = selected.first();
+                        for (int i = 0; i < affected.hand.size; i++) {
+                            if (affected.hand.get(i) == chosen) {
+                                affected.hand.removeIndex(i);
+                                affected.removedCards.add(chosen);
+                                break;
+                            }
+                        }
+                    });
+                break;
+            case "Queen":
+                revealRandomCards(affected.hand, 3);
+                break;
+            default:
+                break;
         }
     }
 }

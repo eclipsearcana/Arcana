@@ -24,6 +24,10 @@ public class CardRenderer {
     private static final Color COL_CUPS      = new Color(0.9f,  0.3f,  0.5f,  1f);
     private static final Color COL_PENTACLES = new Color(0.3f,  0.8f,  0.3f,  1f);
     private static final Color COL_REVERSED  = new Color(0.8f,  0.1f,  0.1f,  0.85f);
+    private static final Color COL_EFFECT_POSITIVE = new Color(0.20f, 0.92f, 0.48f, 1f);
+    private static final Color COL_EFFECT_NEGATIVE = new Color(0.95f, 0.25f, 0.28f, 1f);
+    private static final Color COL_EFFECT_LOCKED = new Color(0.70f, 0.32f, 1f, 1f);
+    private static final Color COL_EFFECT_SPECIAL = new Color(0.20f, 0.82f, 1f, 1f);
 
     private static final Color COL_BACK_BORDER = new Color(0.5f, 0.45f, 0.25f, 1f);
     private static final Color COL_BACK_FILL   = new Color(0.07f, 0.09f, 0.15f, 1f);
@@ -70,16 +74,26 @@ public class CardRenderer {
      * @param size
      */
     public static void drawCost(SpriteBatch batch, BitmapFont font,
-                                Texture costTex, Card card, float x, float y, float size) {
+                                Texture costTex, Card card, int effectiveCost,
+                                float x, float y, float size) {
         float cx = x - COST_OFFSET;
         float cy = y + CARD_H - size + COST_OFFSET;
 
         if (costTex != null) {
             batch.draw(costTex, cx, cy, size, size);
+            if (effectiveCost != card.cost) {
+                String costStr = String.valueOf(effectiveCost);
+                LAYOUT.setText(font, costStr);
+                font.setColor(effectiveCost < card.cost ? COL_EFFECT_POSITIVE : COL_EFFECT_NEGATIVE);
+                font.draw(batch, costStr,
+                    cx + size / 2f - LAYOUT.width / 2f,
+                    cy + size / 2f + LAYOUT.height / 2f);
+                font.setColor(Color.WHITE);
+            }
         } else {
             Color borderCol = borderColor(card);
             font.setColor(borderCol);
-            String costStr = String.valueOf(card.cost);
+            String costStr = String.valueOf(effectiveCost);
             LAYOUT.setText(font, costStr);
             font.draw(batch, costStr,
                 x + CARD_W - 14 - LAYOUT.width / 2f,
@@ -142,6 +156,21 @@ public class CardRenderer {
         sr.rect(x + 11, y + 11, CARD_W - 22, CARD_H - 22);
     }
 
+    public static void drawEffectBorder(ShapeRenderer sr, Card card, float x, float y) {
+        drawEffectBorder(sr, card, x, y, false);
+    }
+
+    public static void drawEffectBorder(ShapeRenderer sr, Card card, float x, float y,
+                                        boolean forcePositive) {
+        Color color = forcePositive ? COL_EFFECT_POSITIVE : effectColor(card);
+        if (color == null) return;
+
+        sr.setColor(color);
+        sr.rect(x - 5f, y - 5f, CARD_W + 10f, CARD_H + 10f);
+        sr.setColor(0.03f, 0.03f, 0.05f, 1f);
+        sr.rect(x - 2f, y - 2f, CARD_W + 4f, CARD_H + 4f);
+    }
+
     // 텍스트 렌더
 
     /**
@@ -195,6 +224,15 @@ public class CardRenderer {
             case PENTACLES: return COL_PENTACLES;
             default:        return Color.WHITE;
         }
+    }
+
+    private static Color effectColor(Card card) {
+        if (card.lockedInHand || card.effectMark == Card.EffectMark.LOCKED) return COL_EFFECT_LOCKED;
+        int costChange = card.costModifier + card.turnCostModifier;
+        if (card.effectMark == Card.EffectMark.NEGATIVE || costChange > 0) return COL_EFFECT_NEGATIVE;
+        if (card.effectMark == Card.EffectMark.POSITIVE || costChange < 0) return COL_EFFECT_POSITIVE;
+        if (card.effectMark == Card.EffectMark.SPECIAL || card.isCloned || card.isIllusion) return COL_EFFECT_SPECIAL;
+        return null;
     }
 
     private static String truncate(BitmapFont font, String text, float maxWidth) {

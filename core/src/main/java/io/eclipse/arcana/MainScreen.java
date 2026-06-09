@@ -76,34 +76,67 @@ public class MainScreen implements Screen {
     private static final Color COL_BTN_DANGER = new Color(0.25f, 0.08f, 0.08f, 1f);
     private static final Color COL_BTN_OK     = new Color(0.10f, 0.30f, 0.10f, 1f);
     private static final Color COL_BTN_BORDER = new Color(0.7f,  0.6f,  0.2f,  1f);
-    private static final Color COL_GRAVE_BG = new Color(0.04f, 0.04f, 0.06f, 0.68f);
-    private static final Color COL_GRAVE_BORDER = new Color(0.38f, 0.33f, 0.22f, 0.85f);
-    private static final Color COL_HP_PANEL_BG = new Color(0.04f, 0.04f, 0.06f, 0.72f);
-    private static final Color COL_HP_PANEL_BORDER = new Color(0.38f, 0.33f, 0.22f, 0.85f);
-    private static final Color COL_HP_ACTIVE_BORDER = new Color(0.88f, 0.72f, 0.24f, 1f);
-    private static final Color COL_HP_BAR_BG = new Color(0.16f, 0.04f, 0.06f, 0.95f);
-    private static final Color COL_HP_BAR_FILL = new Color(0.78f, 0.12f, 0.16f, 1f);
-    private static final Color COL_HP_BAR_LOW = new Color(0.95f, 0.44f, 0.08f, 1f);
+    private static final Color COL_GRAVE_SHADOW = new Color(0.005f, 0.008f, 0.025f, 0.58f);
+    private static final Color COL_GRAVE_PLATE = new Color(0.025f, 0.035f, 0.10f, 0.78f);
+    private static final Color COL_GRAVE_INNER = new Color(0.015f, 0.022f, 0.07f, 0.72f);
+    private static final Color COL_GRAVE_GOLD = new Color(0.47f, 0.36f, 0.20f, 0.82f);
+    private static final Color COL_GRAVE_GOLD_DIM = new Color(0.35f, 0.27f, 0.16f, 0.40f);
+    private static final Color COL_GRAVE_STAR = new Color(0.60f, 0.48f, 0.27f, 0.70f);
+    private static final Color COL_GRAVE_SLOT = new Color(0.01f, 0.015f, 0.05f, 0.76f);
+    private static final Color COL_HP_FRAME = new Color(0.55f, 0.43f, 0.25f, 0.92f);
+    private static final Color COL_HP_FRAME_DIM = new Color(0.34f, 0.27f, 0.18f, 0.64f);
+    private static final Color COL_HP_BAR_BG = new Color(0.025f, 0.018f, 0.065f, 0.96f);
+    private static final Color COL_HP_BAR_TRAIL = new Color(0.82f, 0.30f, 0.95f, 0.42f);
+    private static final Color COL_HP_BAR_FILL = new Color(0.48f, 0.12f, 0.88f, 1f);
+    private static final Color COL_HP_BAR_CORE = new Color(0.88f, 0.45f, 1f, 0.92f);
+    private static final Color COL_HP_BAR_LOW = new Color(0.76f, 0.20f, 0.25f, 1f);
+    private static final Color COL_COST_GEM = new Color(0.54f, 0.20f, 0.98f, 1f);
+    private static final Color COL_COST_GEM_CORE = new Color(0.88f, 0.62f, 1f, 1f);
+    private static final Color COL_COST_EMPTY = new Color(0.045f, 0.04f, 0.09f, 0.96f);
+    private static final Color COL_TOOLTIP_SHADOW = new Color(0f, 0f, 0f, 0.42f);
+    private static final Color COL_TOOLTIP_BG = new Color(0.045f, 0.045f, 0.052f, 0.97f);
+    private static final Color COL_TOOLTIP_LINE = new Color(1f, 1f, 1f, 0.10f);
+    private static final Color COL_TOOLTIP_MUTED = new Color(0.67f, 0.68f, 0.72f, 1f);
+    private static final Color COL_TOOLTIP_ACTIVE = new Color(1f, 0.83f, 0.35f, 1f);
+    private static final Color COL_TOOLTIP_REVERSED = new Color(0.93f, 0.58f, 0.68f, 1f);
+    private static final Color COL_SELECTION_PANEL = new Color(0.035f, 0.04f, 0.075f, 0.98f);
+    private static final Color COL_SELECTION_BORDER = new Color(0.82f, 0.68f, 0.30f, 1f);
+    private static final Color COL_SELECTION_HOVER = new Color(0.22f, 0.86f, 1f, 1f);
+    private static final Color COL_SELECTION_SELECTED = new Color(0.30f, 0.95f, 0.58f, 1f);
+    private static final Rectangle SELECTION_PANEL = new Rectangle(1050f, 278f, 320f, 126f);
+    private static final Rectangle SELECTION_CONFIRM = new Rectangle(1250f, 292f, 96f, 34f);
+    private static final float SELECTION_CARD_SCALE = 0.42f;
+    private static final float SELECTION_CARD_GAP = 18f;
+    private static final float SELECTION_LIFT = 42f;
 
-    private static final float HP_PANEL_X = 80f;
-    private static final float HP_PANEL_W = 270f;
-    private static final float HP_PANEL_H = 58f;
+    private static final float HUD_X = 42f;
+    private static final float HUD_ORB_X = 80f;
+    private static final float HP_BAR_X = 118f;
+    private static final float HP_BAR_W = 270f;
+    private static final float HP_BAR_H = 16f;
     private static final float HP_P0_Y = 210f;
-    private static final float HP_P1_Y = 790f;
-    private static final float HP_BAR_X = HP_PANEL_X + 18f;
-    private static final float HP_BAR_W = HP_PANEL_W - 36f;
-    private static final float HP_BAR_H = 12f;
-    private static final float HP_BAR_OFFSET_Y = 13f;
+    private static final float HP_P1_Y = 800f;
 
     // DEBUG PANEL
     private static final float PANEL_X     = 1390f;
     private static final float PANEL_Y     = 380f;
     private static final float PANEL_W     = 180f;
+    private static final float TOOLTIP_W = 330f;
+    private static final float TOOLTIP_H = 178f;
+    private static final float TOOLTIP_PAD = 18f;
+    private static final float TOOLTIP_RADIUS = 17f;
+    private static final float TOOLTIP_LINE_H = 15f;
+    private static final float TOOLTIP_TAIL_W = 16f;
+    private static final float TOOLTIP_TAIL_H = 11f;
 
     private final Rectangle btnDraw    = new Rectangle(PANEL_X + 5f, PANEL_Y - 50f,  PANEL_W - 10f, BTN_H);
     private final Rectangle btnPhase   = new Rectangle(PANEL_X + 5f, PANEL_Y - 95f,  PANEL_W - 10f, BTN_H);
     private final Rectangle btnDebug   = new Rectangle(PANEL_X + 5f, PANEL_Y - 140f, PANEL_W - 10f, BTN_H);
     private final Rectangle btnRestart = new Rectangle(PANEL_X + 5f, PANEL_Y - 185f, PANEL_W - 10f, BTN_H);
+    private static final float STAGED_CARD_SCALE = 0.66f;
+    private static final float STAGED_CARD_GAP = 24f;
+    private static final float STAGED_CENTER_X = 800f;
+    private static final float STAGED_CENTER_Y = 505f;
 
     private final Core game;
     private final DebugContext debugContext;
@@ -123,6 +156,19 @@ public class MainScreen implements Screen {
     // 호버 상태
     private int hoveredIndex = -1;
     private final float[] hoverAnims = new float[10];
+    private Card stagedSelectionCard;
+    private GameState.CardSelectionRequest stagedSelectionRequest;
+    private Card tooltipCard = null;
+    private float tooltipAnim = 0f;
+    private float tooltipAnimVelocity = 0f;
+    private float tooltipAnchorX = GameConfig.WORLD_W / 2f;
+    private float tooltipDisplayX = GameConfig.WORLD_W / 2f;
+    private float tooltipDisplayVelocity = 0f;
+    private final float[] displayedHp = new float[2];
+    private final float[] trailingHp = new float[2];
+    private final int[] previousHp = new int[2];
+    private final float[] hpFlash = new float[2];
+    private float hudTime = 0f;
 
     // 카드 사용 애니메이션 상태
     private Card  playingCard    = null;
@@ -171,10 +217,10 @@ public class MainScreen implements Screen {
         shape = new ShapeRenderer();
         fonts = new FontManager(Gdx.graphics.getWidth() / 1600f);
 
-        assets = new ArcanaAssets();
-        assets.finishLoading();
+        assets = game.assets;
 
         state = new GameState(selectedSuit);
+        resetHpDisplay();
         if (debugContext != null) {
             debugContext.setState(state);
         }
@@ -197,6 +243,8 @@ public class MainScreen implements Screen {
         viewport.unproject(mouse);
 
         updateHover(delta);
+        updateTooltip(delta);
+        updateHpDisplay(delta);
         updatePlayAnim(delta);
         updateDrawAnim(delta);
         updateBurialAnims(delta);
@@ -223,6 +271,7 @@ public class MainScreen implements Screen {
         shape.begin(ShapeRenderer.ShapeType.Filled);
         drawHandShapes(state.players[0].hand, HAND0_Y, false);
         drawHandShapes(state.players[1].hand, HAND1_Y, true);
+        drawStagedCardEffects();
         drawGraveyardZoneShapes();
         drawButtonShapes();
         drawHudShapes();
@@ -231,6 +280,7 @@ public class MainScreen implements Screen {
         batch.begin();
         drawDeck();
         drawField();
+        drawStagedCards();
         drawGraveyards();
         drawDrawingCard();
         drawHandBatch(state.players[0].hand, HAND0_Y, false);
@@ -240,6 +290,9 @@ public class MainScreen implements Screen {
         drawHud();
         if (state.phase == GamePhase.GAME_OVER) drawGameOver();
         batch.end();
+
+        drawTooltipLayer();
+        drawSelectionLayer();
 
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
@@ -271,6 +324,7 @@ public class MainScreen implements Screen {
     }
 
     private void updateHover(float delta) {
+        syncSelectionState();
         if (state.currentPlayerIndex != 0) {
             // P1 턴이면 호버 없음
             hoveredIndex = -1;
@@ -280,9 +334,61 @@ public class MainScreen implements Screen {
         }
 
         for (int i = 0; i < hoverAnims.length; i++) {
-            float target = (i == hoveredIndex) ? 1f : 0f;
+            float target = i == hoveredIndex ? 1f : 0f;
             hoverAnims[i] += (target - hoverAnims[i]) * HOVER_SPEED * delta;
             if (Math.abs(hoverAnims[i] - target) < 0.01f) hoverAnims[i] = target;
+        }
+    }
+
+    private void updateTooltip(float delta) {
+        Card hovered = hoveredCard();
+        boolean visible = state.pendingSelection == null
+            && hovered != null && CardDescriptions.get(hovered.id) != null;
+
+        if (visible) {
+            if (tooltipCard != hovered) {
+                tooltipAnim = Math.min(tooltipAnim, 0.72f);
+            }
+            tooltipCard = hovered;
+            tooltipAnchorX = handCardCenterX(state.players[0].hand.size, hoveredIndex);
+        }
+
+        float target = visible ? 1f : 0f;
+        tooltipAnimVelocity += (target - tooltipAnim) * 120f * delta;
+        tooltipAnimVelocity *= (float) Math.exp(-18f * delta);
+        tooltipAnim += tooltipAnimVelocity * delta;
+        tooltipAnim = MathUtils.clamp(tooltipAnim, 0f, 1f);
+
+        tooltipDisplayVelocity += (tooltipAnchorX - tooltipDisplayX) * 80f * delta;
+        tooltipDisplayVelocity *= (float) Math.exp(-15f * delta);
+        tooltipDisplayX += tooltipDisplayVelocity * delta;
+
+        if (!visible && tooltipAnim < 0.002f && Math.abs(tooltipAnimVelocity) < 0.01f) {
+            tooltipAnim = 0f;
+            tooltipAnimVelocity = 0f;
+            tooltipCard = null;
+        }
+    }
+
+    private void resetHpDisplay() {
+        for (int i = 0; i < state.players.length; i++) {
+            displayedHp[i] = state.players[i].hp;
+            trailingHp[i] = state.players[i].hp;
+            previousHp[i] = state.players[i].hp;
+            hpFlash[i] = 0f;
+        }
+    }
+
+    private void updateHpDisplay(float delta) {
+        hudTime += delta;
+        for (int i = 0; i < state.players.length; i++) {
+            int hp = state.players[i].hp;
+            if (hp < previousHp[i]) hpFlash[i] = 1f;
+            previousHp[i] = hp;
+
+            displayedHp[i] += (hp - displayedHp[i]) * Math.min(1f, delta * 14f);
+            trailingHp[i] += (hp - trailingHp[i]) * Math.min(1f, delta * 3.2f);
+            hpFlash[i] = Math.max(0f, hpFlash[i] - delta * 2.8f);
         }
     }
 
@@ -336,7 +442,7 @@ public class MainScreen implements Screen {
     }
 
     private float handCardCenterY(float baseY, int index) {
-        return baseY + hoverLift(index) + CardRenderer.CARD_H / 2f;
+        return baseY + hoverLift(index) + selectionLift(index) + CardRenderer.CARD_H / 2f;
     }
 
     private float fieldCardCenterX(Array<Card> field, int index) {
@@ -383,8 +489,9 @@ public class MainScreen implements Screen {
         // 뒤에서부터 체크 — 앞 카드가 위에 그려지므로 앞 카드 우선
         for (int i = hand.size - 1; i >= 0; i--) {
             float cx = startX + i * (CardRenderer.CARD_W + GAP);
+            float cy = baseY + selectionLift(i);
             if (wx >= cx && wx <= cx + CardRenderer.CARD_W
-                && wy >= baseY && wy <= baseY + CardRenderer.CARD_H) {
+                && wy >= cy && wy <= cy + CardRenderer.CARD_H + HOVER_LIFT) {
                 return i;
             }
         }
@@ -400,12 +507,21 @@ public class MainScreen implements Screen {
 
             float x = startX + i * (CardRenderer.CARD_W + GAP);
             // 호버 리프트 적용 (P0 핸드만)
-            float y = baseY + (isBack ? 0 : hoverLift(i));
+            float y = baseY + (isBack ? 0 : hoverLift(i) + selectionLift(i));
 
             if (isBack) {
                 Texture back = assets.cardBack();
                 if (back == null) CardRenderer.drawBack(shape, x, y);
             } else {
+                CardRenderer.drawEffectBorder(shape, card, x, y,
+                    state.players[0].allCardsCostZeroThisTurn);
+                if (isHandSelectionCandidate(card)) {
+                    shape.setColor(card == stagedSelectionCard
+                        ? COL_SELECTION_SELECTED : COL_SELECTION_HOVER);
+                    shape.rect(x - 7f, y - 7f, CardRenderer.CARD_W + 14f, CardRenderer.CARD_H + 14f);
+                    shape.setColor(0.03f, 0.03f, 0.05f, 1f);
+                    shape.rect(x - 3f, y - 3f, CardRenderer.CARD_W + 6f, CardRenderer.CARD_H + 6f);
+                }
                 Texture illust = assets.cardIllust(card);
                 if (illust == null) CardRenderer.drawShape(shape, card, x, y);
             }
@@ -419,7 +535,7 @@ public class MainScreen implements Screen {
 
         for (int i = 0; i < hand.size; i++) {
             float x = startX + i * (CardRenderer.CARD_W + GAP);
-            float y = baseY + (isBack ? 0 : hoverLift(i));
+            float y = baseY + (isBack ? 0 : hoverLift(i) + selectionLift(i));
             Card  card = hand.get(i);
             if (isCardHiddenInHand(card)) continue;
 
@@ -429,15 +545,169 @@ public class MainScreen implements Screen {
             }
 
             Texture illust  = assets.cardIllust(card);
-            Texture costTex = assets.cardCost(card);
+            int effectiveCost = state.effectiveCostFor(state.players[0], card);
+            Texture costTex = assets.cardCost(card, effectiveCost);
 
             if (illust != null) {
                 CardRenderer.drawIllust(batch, illust, x, y, card.shouldFlipIllust());
-                CardRenderer.drawCost(batch, fonts.small, costTex, card, x, y, costSize(card));
+                CardRenderer.drawCost(batch, fonts.small, costTex, card, effectiveCost, x, y, costSize(card));
             } else {
                 CardRenderer.drawText(batch, fonts.small, card, x, y);
             }
         }
+    }
+
+    private Card hoveredCard() {
+        if (state == null || state.currentPlayerIndex != 0 || hoveredIndex < 0) return null;
+        Player player = state.players[0];
+        if (hoveredIndex >= player.hand.size) return null;
+        Card card = player.hand.get(hoveredIndex);
+        return isCardHiddenInHand(card) ? null : card;
+    }
+
+    private Rectangle tooltipBounds() {
+        if (tooltipCard == null || tooltipAnim <= 0f) return null;
+
+        float eased = Interpolation.smoother.apply(tooltipAnim);
+        float x = MathUtils.clamp(tooltipDisplayX - TOOLTIP_W / 2f,
+            40f, GameConfig.WORLD_W - TOOLTIP_W - 40f);
+        float baseY = MathUtils.clamp(HAND0_Y + CardRenderer.CARD_H + 58f,
+            245f, GameConfig.WORLD_H - TOOLTIP_H - 40f);
+        float y = baseY - (1f - eased) * 12f;
+        return new Rectangle(x, y, TOOLTIP_W, TOOLTIP_H);
+    }
+
+    private void drawTooltipLayer() {
+        if (tooltipCard == null || tooltipAnim <= 0f) return;
+
+        shape.begin(ShapeRenderer.ShapeType.Filled);
+        drawTooltipShape();
+        shape.end();
+
+        batch.begin();
+        drawTooltipText();
+        batch.end();
+    }
+
+    private void drawTooltipShape() {
+        Rectangle r = tooltipBounds();
+        if (r == null) return;
+
+        float alpha = Interpolation.smoother.apply(tooltipAnim);
+        float tailX = MathUtils.clamp(tooltipDisplayX, r.x + TOOLTIP_RADIUS + TOOLTIP_TAIL_W,
+            r.x + r.width - TOOLTIP_RADIUS - TOOLTIP_TAIL_W);
+
+        setTooltipShapeColor(COL_TOOLTIP_SHADOW, alpha);
+        drawRoundedRect(r.x + 8f, r.y - 10f, r.width, r.height, TOOLTIP_RADIUS);
+        shape.triangle(tailX - TOOLTIP_TAIL_W / 2f + 8f, r.y - 10f,
+            tailX + TOOLTIP_TAIL_W / 2f + 8f, r.y - 10f,
+            tailX + 8f, r.y - TOOLTIP_TAIL_H - 10f);
+
+        setTooltipShapeColor(COL_TOOLTIP_BG, alpha);
+        drawRoundedRect(r.x, r.y, r.width, r.height, TOOLTIP_RADIUS);
+        shape.triangle(tailX - TOOLTIP_TAIL_W / 2f, r.y + 1f,
+            tailX + TOOLTIP_TAIL_W / 2f, r.y + 1f,
+            tailX, r.y - TOOLTIP_TAIL_H);
+
+        setTooltipShapeColor(COL_TOOLTIP_LINE, alpha);
+        shape.rect(r.x + TOOLTIP_PAD, r.y + r.height - 49f,
+            r.width - TOOLTIP_PAD * 2f, 1f);
+    }
+
+    private void drawRoundedRect(float x, float y, float width, float height, float radius) {
+        shape.rect(x + radius, y, width - radius * 2f, height);
+        shape.rect(x, y + radius, width, height - radius * 2f);
+        shape.circle(x + radius, y + radius, radius, 24);
+        shape.circle(x + width - radius, y + radius, radius, 24);
+        shape.circle(x + radius, y + height - radius, radius, 24);
+        shape.circle(x + width - radius, y + height - radius, radius, 24);
+    }
+
+    private void setTooltipShapeColor(Color color, float alpha) {
+        shape.setColor(color.r, color.g, color.b, color.a * alpha);
+    }
+
+    private void drawTooltipText() {
+        Card card = tooltipCard;
+        CardDescriptions.Entry entry = card == null ? null : CardDescriptions.get(card.id);
+        if (card == null || entry == null) return;
+
+        Rectangle r = tooltipBounds();
+        if (r == null) return;
+
+        Player player = state.players[0];
+        boolean useReversed = player.effectsSwapped ? !card.reversed : card.reversed;
+        String direction = useReversed ? "역방향" : "정방향";
+        String alternateDirection = useReversed ? "정방향" : "역방향";
+        String alternate = useReversed ? entry.upright : entry.reversed;
+        String cardState = card.reversed ? "역방향 카드" : "정방향 카드";
+        String current = CardDescriptions.currentText(card.id, card.reversed, player.effectsSwapped);
+
+        float x = r.x + TOOLTIP_PAD;
+        float textW = r.width - TOOLTIP_PAD * 2f;
+        float alpha = Interpolation.smoother.apply(tooltipAnim);
+
+        fonts.tooltipTitle.setColor(1f, 0.97f, 0.91f, alpha);
+        fonts.tooltipTitle.draw(batch, card.name, x, r.y + r.height - 16f);
+
+        setTooltipFontColor(fonts.tooltipBody, COL_TOOLTIP_MUTED, alpha);
+        fonts.tooltipBody.draw(batch,
+            "COST " + state.effectiveCostFor(player, card) + "   |   " + cardState
+                + (player.effectsSwapped ? "   |   효과 반전 중" : ""),
+            x, r.y + r.height - 35f);
+
+        setTooltipFontColor(fonts.tooltipBody, COL_TOOLTIP_ACTIVE, alpha);
+        fonts.tooltipBody.draw(batch, "현재 적용 · " + direction, x, r.y + 114f);
+        setTooltipFontColor(fonts.tooltipBody, Color.WHITE, alpha);
+        drawWrappedText(current, x, r.y + 96f, textW, TOOLTIP_LINE_H, fonts.tooltipBody);
+
+        setTooltipFontColor(fonts.tooltipBody,
+            useReversed ? COL_TOOLTIP_ACTIVE : COL_TOOLTIP_REVERSED, alpha * 0.88f);
+        fonts.tooltipBody.draw(batch, "반대 효과 · " + alternateDirection, x, r.y + 46f);
+        setTooltipFontColor(fonts.tooltipBody, COL_TOOLTIP_MUTED, alpha);
+        drawWrappedText(alternate, x, r.y + 28f, textW, TOOLTIP_LINE_H, fonts.tooltipBody);
+        fonts.tooltipBody.setColor(Color.WHITE);
+        fonts.tooltipTitle.setColor(Color.WHITE);
+    }
+
+    private void setTooltipFontColor(com.badlogic.gdx.graphics.g2d.BitmapFont font,
+                                     Color color, float alpha) {
+        font.setColor(color.r, color.g, color.b, color.a * alpha);
+    }
+
+    private float drawWrappedText(String text, float x, float y, float maxWidth, float lineHeight,
+                                  com.badlogic.gdx.graphics.g2d.BitmapFont font) {
+        String remaining = text;
+        GlyphLayout layout = new GlyphLayout();
+        while (remaining.length() > 0) {
+            int cut = fitText(remaining, maxWidth, font, layout);
+            String line = remaining.substring(0, cut);
+            font.draw(batch, line, x, y);
+            remaining = remaining.substring(cut).trim();
+            y -= lineHeight;
+        }
+        return y;
+    }
+
+    private int fitText(String text, float maxWidth, com.badlogic.gdx.graphics.g2d.BitmapFont font,
+                        GlyphLayout layout) {
+        layout.setText(font, text);
+        if (layout.width <= maxWidth) return text.length();
+
+        int low = 1;
+        int high = text.length();
+        while (low < high) {
+            int mid = (low + high + 1) / 2;
+            layout.setText(font, text.substring(0, mid));
+            if (layout.width <= maxWidth) low = mid;
+            else high = mid - 1;
+        }
+
+        int cut = Math.max(1, low);
+        for (int i = cut; i > Math.max(1, cut - 14); i--) {
+            if (Character.isWhitespace(text.charAt(i - 1))) return i;
+        }
+        return cut;
     }
 
     private void drawDeck() {
@@ -502,27 +772,170 @@ public class MainScreen implements Screen {
         drawPlayerField(state.players[1].field, FIELD_P1_Y, 1);  // P1 위
     }
 
+    private float stagedCardWidth() {
+        return CardRenderer.CARD_W * STAGED_CARD_SCALE;
+    }
+
+    private float stagedCardHeight() {
+        return CardRenderer.CARD_H * STAGED_CARD_SCALE;
+    }
+
+    private float stagedStartX(Array<Card> cards) {
+        float totalWidth = cards.size * stagedCardWidth()
+            + Math.max(0, cards.size - 1) * STAGED_CARD_GAP;
+        return STAGED_CENTER_X - totalWidth / 2f;
+    }
+
+    private Rectangle stagedCardBounds(Array<Card> cards, int index) {
+        return new Rectangle(
+            stagedStartX(cards) + index * (stagedCardWidth() + STAGED_CARD_GAP),
+            STAGED_CENTER_Y - stagedCardHeight() / 2f,
+            stagedCardWidth(),
+            stagedCardHeight());
+    }
+
+    private int stagedCardIndexAt(Player player, float x, float y) {
+        for (int i = player.stagedCards.size - 1; i >= 0; i--) {
+            if (stagedCardBounds(player.stagedCards, i).contains(x, y)) return i;
+        }
+        return -1;
+    }
+
+    private void drawStagedCardEffects() {
+        Player player = state.currentPlayer();
+        if (player.stagedCards.size == 0) return;
+
+        float pulse = 0.58f + 0.24f * MathUtils.sin(hudTime * 3.6f);
+        for (int i = 0; i < player.stagedCards.size; i++) {
+            Rectangle bounds = stagedCardBounds(player.stagedCards, i);
+            float cardPulse = 0.55f + 0.25f * MathUtils.sin(hudTime * 4.4f + i * 0.9f);
+            shape.setColor(COL_SELECTION_HOVER.r, COL_SELECTION_HOVER.g,
+                COL_SELECTION_HOVER.b, cardPulse * 0.20f);
+            shape.rect(bounds.x - 12f, bounds.y - 12f, bounds.width + 24f, bounds.height + 24f);
+            shape.setColor(COL_SELECTION_SELECTED.r, COL_SELECTION_SELECTED.g,
+                COL_SELECTION_SELECTED.b, cardPulse * 0.72f);
+            shape.rect(bounds.x - 5f, bounds.y - 5f, bounds.width + 10f, bounds.height + 10f);
+            shape.setColor(0.015f, 0.02f, 0.05f, 1f);
+            shape.rect(bounds.x - 1f, bounds.y - 1f, bounds.width + 2f, bounds.height + 2f);
+
+            for (int p = 0; p < 6; p++) {
+                float angle = hudTime * (1.6f + p * 0.12f) + i * 1.7f + p;
+                float radius = 18f + p * 7f;
+                float sparkX = bounds.x + bounds.width / 2f + MathUtils.cos(angle) * radius;
+                float sparkY = bounds.y + bounds.height / 2f + MathUtils.sin(angle * 1.21f) * radius * 0.78f;
+                shape.setColor(COL_SELECTION_HOVER.r, COL_SELECTION_HOVER.g,
+                    COL_SELECTION_HOVER.b, 0.18f + cardPulse * 0.20f);
+                shape.circle(sparkX, sparkY, 2.2f + p * 0.18f, 10);
+            }
+        }
+    }
+
+    private void drawStagedCards() {
+        Player player = state.currentPlayer();
+        if (player.stagedCards.size == 0) return;
+
+        for (int i = 0; i < player.stagedCards.size; i++) {
+            Card card = player.stagedCards.get(i);
+            Rectangle bounds = stagedCardBounds(player.stagedCards, i);
+            Texture illust = assets.cardIllust(card);
+            if (illust != null) {
+                batch.draw(illust, bounds.x, bounds.y, bounds.width, bounds.height,
+                    0, 0, illust.getWidth(), illust.getHeight(), false, card.shouldFlipIllust());
+            }
+
+            int effectiveCost = state.effectiveCostFor(player, card);
+            Texture costTexture = assets.cardCost(card, effectiveCost);
+            float costSize = 36f;
+            float costX = bounds.x - 5f;
+            float costY = bounds.y + bounds.height - costSize + 5f;
+            if (costTexture != null) {
+                batch.draw(costTexture, costX, costY, costSize, costSize);
+            }
+            if (costTexture == null || effectiveCost != card.cost) {
+                String value = String.valueOf(effectiveCost);
+                GlyphLayout valueLayout = new GlyphLayout(fonts.small, value);
+                fonts.small.setColor(effectiveCost < card.cost
+                    ? COL_SELECTION_SELECTED : COL_TOOLTIP_REVERSED);
+                fonts.small.draw(batch, value,
+                    costX + costSize / 2f - valueLayout.width / 2f,
+                    costY + costSize / 2f + valueLayout.height / 2f);
+                fonts.small.setColor(Color.WHITE);
+            }
+        }
+
+        String cost = state.stagedCost(player) + " / " + player.cost;
+        GlyphLayout layout = new GlyphLayout(fonts.small, cost);
+        fonts.small.setColor(COL_SELECTION_HOVER);
+        fonts.small.draw(batch, cost, STAGED_CENTER_X - layout.width / 2f,
+            STAGED_CENTER_Y - stagedCardHeight() / 2f - 12f);
+        fonts.small.setColor(Color.WHITE);
+    }
+
     private void drawGraveyardZoneShapes() {
         drawGraveyardZoneShape(GRAVE_X, GRAVE_P0_Y);
         drawGraveyardZoneShape(GRAVE_X, GRAVE_P1_Y);
     }
 
     private void drawGraveyardZoneShape(float x, float y) {
-        shape.setColor(COL_GRAVE_BORDER);
-        shape.rect(x, y, GRAVE_W, GRAVE_H);
-        shape.setColor(COL_GRAVE_BG);
-        shape.rect(x + 2f, y + 2f, GRAVE_W - 4f, GRAVE_H - 4f);
+        shape.setColor(COL_GRAVE_SHADOW);
+        drawAstralPlate(x + 5f, y - 5f, GRAVE_W, GRAVE_H);
+        shape.setColor(COL_GRAVE_GOLD);
+        drawAstralPlate(x, y, GRAVE_W, GRAVE_H);
+        shape.setColor(COL_GRAVE_PLATE);
+        drawAstralPlate(x + 2f, y + 2f, GRAVE_W - 4f, GRAVE_H - 4f);
+        shape.setColor(COL_GRAVE_GOLD_DIM);
+        drawAstralPlate(x + 8f, y + 8f, GRAVE_W - 16f, GRAVE_H - 16f);
+        shape.setColor(COL_GRAVE_INNER);
+        drawAstralPlate(x + 10f, y + 10f, GRAVE_W - 20f, GRAVE_H - 20f);
+
+        drawGraveSlots(x, y);
+        drawAstralMark(x + GRAVE_W - 27f, y + GRAVE_H - 23f);
+    }
+
+    private void drawAstralPlate(float x, float y, float width, float height) {
+        float cut = 12f;
+        shape.rect(x + cut, y, width - cut * 2f, height);
+        shape.rect(x, y + cut, width, height - cut * 2f);
+        shape.triangle(x, y + cut, x + cut, y, x + cut, y + cut);
+        shape.triangle(x + width, y + cut, x + width - cut, y, x + width - cut, y + cut);
+        shape.triangle(x, y + height - cut, x + cut, y + height, x + cut, y + height - cut);
+        shape.triangle(x + width, y + height - cut, x + width - cut, y + height,
+            x + width - cut, y + height - cut);
+    }
+
+    private void drawGraveSlots(float x, float y) {
+        float cardW = CardRenderer.CARD_W * GRAVE_CARD_SCALE;
+        float cardH = CardRenderer.CARD_H * GRAVE_CARD_SCALE;
+        float cardX = x + 12f;
+        float cardY = y + 14f;
+
+        for (int i = 0; i < 4; i++) {
+            float slotX = cardX + i * (cardW + GRAVE_CARD_GAP);
+            shape.setColor(COL_GRAVE_SLOT);
+            drawAstralPlate(slotX - 2f, cardY - 2f, cardW + 4f, cardH + 4f);
+            shape.setColor(COL_GRAVE_GOLD_DIM);
+            shape.rect(slotX + 4f, cardY - 4f, cardW - 8f, 1f);
+        }
+    }
+
+    private void drawAstralMark(float cx, float cy) {
+        shape.setColor(COL_GRAVE_STAR);
+        shape.circle(cx, cy, 7f, 20);
+        shape.setColor(COL_GRAVE_INNER);
+        shape.circle(cx, cy, 4f, 20);
+        shape.setColor(COL_GRAVE_STAR);
+        shape.triangle(cx, cy + 14f, cx - 3f, cy + 5f, cx + 3f, cy + 5f);
+        shape.triangle(cx, cy - 14f, cx - 3f, cy - 5f, cx + 3f, cy - 5f);
+        shape.triangle(cx - 14f, cy, cx - 5f, cy - 3f, cx - 5f, cy + 3f);
+        shape.triangle(cx + 14f, cy, cx + 5f, cy - 3f, cx + 5f, cy + 3f);
     }
 
     private void drawGraveyards() {
-        drawPlayerGraveyard(state.players[0], "P0 무덤", GRAVE_X, GRAVE_P0_Y);
-        drawPlayerGraveyard(state.players[1], "P1 무덤", GRAVE_X, GRAVE_P1_Y);
+        drawPlayerGraveyard(state.players[0], GRAVE_X, GRAVE_P0_Y);
+        drawPlayerGraveyard(state.players[1], GRAVE_X, GRAVE_P1_Y);
     }
 
-    private void drawPlayerGraveyard(Player player, String label, float x, float y) {
-        fonts.small.setColor(0.82f, 0.76f, 0.62f, 1f);
-        fonts.small.draw(batch, label + " " + player.graveyard.size, x + 10f, y + GRAVE_H - 10f);
-
+    private void drawPlayerGraveyard(Player player, float x, float y) {
         float cardW = CardRenderer.CARD_W * GRAVE_CARD_SCALE;
         float cardH = CardRenderer.CARD_H * GRAVE_CARD_SCALE;
         float cardX = x + 12f;
@@ -534,15 +947,15 @@ public class MainScreen implements Screen {
             if (isCardBeingBuried(buried.card)) continue;
 
             drawGraveyardCard(buried.card, cardX + shown * (cardW + GRAVE_CARD_GAP), cardY, cardW, cardH);
-            fonts.small.setColor(1f, 0.92f, 0.68f, 1f);
-            fonts.small.draw(batch, String.valueOf(buried.turnsRemaining),
-                cardX + shown * (cardW + GRAVE_CARD_GAP) + cardW - 12f,
-                cardY + cardH - 6f);
+            float counterX = cardX + shown * (cardW + GRAVE_CARD_GAP) + cardW - 8f;
+            float counterY = cardY + cardH - 5f;
+            fonts.small.setColor(0.82f, 0.68f, 0.42f, 1f);
+            fonts.small.draw(batch, String.valueOf(buried.turnsRemaining), counterX, counterY);
             shown++;
         }
 
         if (drawableCount > shown) {
-            fonts.small.setColor(0.75f, 0.72f, 0.66f, 1f);
+            fonts.small.setColor(0.70f, 0.58f, 0.36f, 1f);
             fonts.small.draw(batch, "+" + (drawableCount - shown),
                 x + GRAVE_W - 42f, y + 24f);
         }
@@ -715,6 +1128,13 @@ public class MainScreen implements Screen {
         return hoverAnims[i] * HOVER_LIFT;
     }
 
+    private float selectionLift(int index) {
+        if (index >= state.players[0].hand.size) return 0f;
+        Card card = state.players[0].hand.get(index);
+        if (state.pendingSelection == null) return 0f;
+        return card == stagedSelectionCard ? SELECTION_LIFT : 0f;
+    }
+
     // 코스트 사이즈
     private float costSize(Card card) {
         if (card.type == Card.ArcanaType.MAJOR) return 48f;
@@ -733,7 +1153,11 @@ public class MainScreen implements Screen {
             drawBtn(btnRestart, COL_BTN_OK);
             return;
         }
-        drawBtn(btnDraw,  COL_BTN_NORMAL);
+        if (state.currentPlayer().stagedCards.size > 0) {
+            drawStartButton(btnDraw);
+        } else {
+            drawBtn(btnDraw,  COL_BTN_NORMAL);
+        }
         drawBtn(btnPhase, COL_BTN_NORMAL);
         drawBtn(btnDebug, COL_BTN_DANGER);
     }
@@ -745,12 +1169,37 @@ public class MainScreen implements Screen {
         shape.rect(r.x + 1, r.y + 1, r.width - 2, r.height - 2);
     }
 
+    private void drawStartButton(Rectangle r) {
+        float pulse = 0.62f + 0.25f * MathUtils.sin(hudTime * 4.2f);
+        boolean hovered = r.contains(mouse);
+        Color line = hovered ? COL_SELECTION_SELECTED : COL_SELECTION_HOVER;
+
+        shape.setColor(0f, 0f, 0f, 0.42f);
+        drawAstralPlate(r.x + 4f, r.y - 4f, r.width, r.height);
+        shape.setColor(COL_SELECTION_BORDER);
+        drawAstralPlate(r.x, r.y, r.width, r.height);
+        shape.setColor(0.03f, 0.035f, 0.09f, 0.96f);
+        drawAstralPlate(r.x + 2f, r.y + 2f, r.width - 4f, r.height - 4f);
+        shape.setColor(line.r, line.g, line.b, 0.16f + pulse * 0.18f);
+        shape.rect(r.x + 10f, r.y + r.height - 7f, r.width - 20f, 2f);
+        shape.rect(r.x + 10f, r.y + 5f, r.width - 20f, 2f);
+
+        float cx = r.x + 28f;
+        float cy = r.y + r.height / 2f;
+        shape.setColor(line.r, line.g, line.b, 0.20f + pulse * 0.22f);
+        shape.circle(cx, cy, 18f + pulse * 3f, 32);
+        shape.setColor(0.02f, 0.025f, 0.07f, 1f);
+        shape.circle(cx, cy, 13f, 32);
+        shape.setColor(line);
+        shape.triangle(cx - 4f, cy - 8f, cx - 4f, cy + 8f, cx + 10f, cy);
+    }
+
     private void drawButtonLabels() {
         fonts.small.setColor(1f, 1f, 1f, 1f);
         if (state.phase == GamePhase.GAME_OVER) {
             drawBtnLabel("다시 시작", btnRestart);
         } else {
-            drawBtnLabel("드로우", btnDraw);
+            drawBtnLabel(state.currentPlayer().stagedCards.size > 0 ? "시작" : "드로우", btnDraw);
             drawBtnLabel("페이즈 진행", btnPhase);
             drawBtnLabel("디버그: -25HP", btnDebug);
         }
@@ -766,24 +1215,124 @@ public class MainScreen implements Screen {
 
     // HUD
     private void drawHudShapes() {
-        drawHpPanelShape(0, HP_P0_Y);
-        drawHpPanelShape(1, HP_P1_Y);
+        drawHpBarShape(0, HP_P0_Y);
+        drawHpBarShape(1, HP_P1_Y);
     }
 
-    private void drawHpPanelShape(int playerIndex, float y) {
-        Player player = state.players[playerIndex];
+    private void drawHpBarShape(int playerIndex, float y) {
         boolean active = state.phase == GamePhase.MAIN && state.currentPlayerIndex == playerIndex;
-        float hpRatio = MathUtils.clamp((float) player.hp / GameConfig.PLAYER_HP_START, 0f, 1f);
+        float hpRatio = MathUtils.clamp(displayedHp[playerIndex] / GameConfig.PLAYER_HP_START, 0f, 1f);
+        float trailRatio = MathUtils.clamp(trailingHp[playerIndex] / GameConfig.PLAYER_HP_START, 0f, 1f);
+        float pulse = active ? 0.82f + 0.18f * MathUtils.sin(hudTime * 2.4f) : 0.58f;
+        float flash = hpFlash[playerIndex];
+        float orbY = y + 29f;
 
-        shape.setColor(active ? COL_HP_ACTIVE_BORDER : COL_HP_PANEL_BORDER);
-        shape.rect(HP_PANEL_X, y, HP_PANEL_W, HP_PANEL_H);
-        shape.setColor(COL_HP_PANEL_BG);
-        shape.rect(HP_PANEL_X + 2f, y + 2f, HP_PANEL_W - 4f, HP_PANEL_H - 4f);
+        shape.setColor(0.005f, 0.006f, 0.025f, 0.62f);
+        drawAstralPlate(HUD_X + 5f, y - 28f, 365f, 94f);
+        shape.setColor(COL_HP_FRAME_DIM);
+        shape.rect(HUD_X + 48f, y + 59f, 313f, 1f);
+        shape.rect(HUD_X + 48f, y + 39f, 313f, 1f);
+        shape.rect(HUD_X + 48f, y - 24f, 313f, 1f);
 
+        drawPlayerOrb(HUD_ORB_X, orbY, active, pulse);
+
+        shape.setColor(0f, 0f, 0f, 0.46f);
+        drawAstralMeter(HP_BAR_X + 4f, y - 4f, HP_BAR_W, HP_BAR_H + 8f);
+        shape.setColor(COL_HP_FRAME.r, COL_HP_FRAME.g, COL_HP_FRAME.b,
+            COL_HP_FRAME.a * pulse + flash * 0.16f);
+        drawAstralMeter(HP_BAR_X, y, HP_BAR_W, HP_BAR_H);
+        shape.setColor(COL_HP_FRAME_DIM);
+        drawAstralMeter(HP_BAR_X + 2f, y + 2f, HP_BAR_W - 4f, HP_BAR_H - 4f);
         shape.setColor(COL_HP_BAR_BG);
-        shape.rect(HP_BAR_X, y + HP_BAR_OFFSET_Y, HP_BAR_W, HP_BAR_H);
-        shape.setColor(hpRatio <= 0.35f ? COL_HP_BAR_LOW : COL_HP_BAR_FILL);
-        shape.rect(HP_BAR_X, y + HP_BAR_OFFSET_Y, HP_BAR_W * hpRatio, HP_BAR_H);
+        drawAstralMeter(HP_BAR_X + 4f, y + 4f, HP_BAR_W - 8f, HP_BAR_H - 8f);
+
+        shape.setColor(COL_HP_BAR_TRAIL);
+        drawAstralMeter(HP_BAR_X + 6f, y + 6f, (HP_BAR_W - 12f) * trailRatio, HP_BAR_H - 12f);
+        shape.setColor(hpRatio <= 0.25f ? COL_HP_BAR_LOW : COL_HP_BAR_FILL);
+        drawAstralMeter(HP_BAR_X + 6f, y + 6f, (HP_BAR_W - 12f) * hpRatio, HP_BAR_H - 12f);
+        shape.setColor(COL_HP_BAR_CORE.r, COL_HP_BAR_CORE.g, COL_HP_BAR_CORE.b,
+            COL_HP_BAR_CORE.a + flash * 0.18f);
+        drawAstralMeter(HP_BAR_X + 13f, y + HP_BAR_H - 8f,
+            Math.max(0f, (HP_BAR_W - 26f) * hpRatio), 3f);
+        drawAstralMeterOrnament(HP_BAR_X - 10f, y + HP_BAR_H / 2f, active);
+        drawAstralMeterOrnament(HP_BAR_X + HP_BAR_W + 10f, y + HP_BAR_H / 2f, active);
+
+        Player player = state.players[playerIndex];
+        for (int i = 0; i < player.costMax; i++) {
+            drawCostGem(HP_BAR_X + 12f + i * 25f, y - 15f, i < player.cost, active, i);
+        }
+    }
+
+    private void drawPlayerOrb(float cx, float cy, boolean active, float pulse) {
+        shape.setColor(COL_HP_FRAME.r, COL_HP_FRAME.g, COL_HP_FRAME.b, active ? 0.38f : 0.20f);
+        shape.circle(cx, cy, 37f + pulse * 2f, 40);
+        shape.setColor(0.018f, 0.015f, 0.06f, 0.96f);
+        shape.circle(cx, cy, 33f, 40);
+        shape.setColor(COL_HP_FRAME);
+        shape.circle(cx, cy, 29f, 40);
+        shape.setColor(0.025f, 0.018f, 0.075f, 1f);
+        shape.circle(cx, cy, 26f, 40);
+        shape.setColor(COL_HP_FRAME_DIM);
+        shape.circle(cx, cy, 19f, 32);
+        shape.setColor(0.055f, 0.025f, 0.12f, 1f);
+        shape.circle(cx, cy, 16f, 32);
+
+        Color star = active ? COL_COST_GEM_CORE : COL_COST_GEM;
+        shape.setColor(star.r, star.g, star.b, active ? 0.32f + pulse * 0.28f : 0.28f);
+        shape.circle(cx, cy, 11f + pulse, 24);
+        shape.setColor(star);
+        shape.triangle(cx, cy + 17f, cx - 5f, cy + 3f, cx + 5f, cy + 3f);
+        shape.triangle(cx, cy - 17f, cx - 5f, cy - 3f, cx + 5f, cy - 3f);
+        shape.triangle(cx - 17f, cy, cx - 3f, cy - 5f, cx - 3f, cy + 5f);
+        shape.triangle(cx + 17f, cy, cx + 3f, cy - 5f, cx + 3f, cy + 5f);
+        shape.setColor(COL_COST_GEM_CORE);
+        shape.circle(cx, cy, 3f, 16);
+    }
+
+    private void drawCostGem(float cx, float cy, boolean filled, boolean active, int index) {
+        float pulse = active && filled ? 0.8f + 0.2f * MathUtils.sin(hudTime * 4f + index * 0.45f) : 0.55f;
+        Color border = filled ? COL_HP_FRAME : COL_HP_FRAME_DIM;
+        Color gem = filled ? COL_COST_GEM : COL_COST_EMPTY;
+
+        shape.setColor(border.r, border.g, border.b, filled ? 0.92f : 0.58f);
+        drawDiamond(cx, cy, 9f, 9f);
+        shape.setColor(0.015f, 0.012f, 0.045f, 1f);
+        drawDiamond(cx, cy, 7f, 7f);
+        shape.setColor(gem.r, gem.g, gem.b, filled ? pulse : 1f);
+        drawDiamond(cx, cy, 5f, 5f);
+        if (filled) {
+            shape.setColor(COL_COST_GEM_CORE.r, COL_COST_GEM_CORE.g, COL_COST_GEM_CORE.b, pulse);
+            drawDiamond(cx, cy, 2f, 3f);
+        }
+    }
+
+    private void drawDiamond(float cx, float cy, float halfW, float halfH) {
+        shape.triangle(cx, cy + halfH, cx - halfW, cy, cx, cy - halfH);
+        shape.triangle(cx, cy + halfH, cx + halfW, cy, cx, cy - halfH);
+    }
+
+    private void drawAstralMeter(float x, float y, float width, float height) {
+        if (width <= 0f || height <= 0f) return;
+        float cut = Math.min(height * 0.45f, width * 0.12f);
+        shape.rect(x + cut, y, Math.max(0f, width - cut * 2f), height);
+        shape.triangle(x, y + height / 2f, x + cut, y, x + cut, y + height);
+        shape.triangle(x + width, y + height / 2f, x + width - cut, y,
+            x + width - cut, y + height);
+    }
+
+    private void drawAstralMeterOrnament(float cx, float cy, boolean active) {
+        shape.setColor(COL_HP_FRAME.r, COL_HP_FRAME.g, COL_HP_FRAME.b, active ? 0.95f : 0.68f);
+        shape.circle(cx, cy, 5f, 16);
+        shape.triangle(cx, cy + 11f, cx - 3f, cy + 4f, cx + 3f, cy + 4f);
+        shape.triangle(cx, cy - 11f, cx - 3f, cy - 4f, cx + 3f, cy - 4f);
+    }
+
+    private void drawRoundedBar(float x, float y, float width, float height) {
+        if (width <= 0f || height <= 0f) return;
+        float radius = Math.min(height / 2f, width / 2f);
+        shape.rect(x + radius, y, Math.max(0f, width - radius * 2f), height);
+        shape.circle(x + radius, y + height / 2f, radius, 20);
+        shape.circle(x + width - radius, y + height / 2f, radius, 20);
     }
 
     private void drawGameOver() {
@@ -796,22 +1345,22 @@ public class MainScreen implements Screen {
 
     private void drawHud() {
         drawButtonLabels();
-        drawHpPanelText(0, HP_P0_Y);
-        drawHpPanelText(1, HP_P1_Y);
+        drawHpBarText(0, HP_P0_Y);
+        drawHpBarText(1, HP_P1_Y);
     }
 
-    private void drawHpPanelText(int playerIndex, float y) {
+    private void drawHpBarText(int playerIndex, float y) {
         Player player = state.players[playerIndex];
-        String label = "P" + playerIndex + " HP";
         String value = player.hp + " / " + GameConfig.PLAYER_HP_START;
 
-        fonts.normal.setColor(0.92f, 0.86f, 0.70f, 1f);
-        fonts.normal.draw(batch, label, HP_PANEL_X + 18f, y + 43f);
-
-        GlyphLayout layout = new GlyphLayout(fonts.normal, value);
-        fonts.normal.setColor(1f, 1f, 1f, 1f);
-        fonts.normal.draw(batch, value, HP_PANEL_X + HP_PANEL_W - 18f - layout.width, y + 43f);
-        fonts.normal.setColor(Color.WHITE);
+        fonts.small.setColor(0.72f, 0.61f, 0.42f, 0.95f);
+        fonts.small.draw(batch, "PLAYER " + (playerIndex + 1), HP_BAR_X, y + 56f);
+        fonts.small.draw(batch, "HP  " + value, HP_BAR_X, y + 37f);
+        fonts.small.draw(batch, "COST", HUD_X + 23f, y - 10f);
+        String costValue = String.valueOf(player.cost);
+        GlyphLayout layout = new GlyphLayout(fonts.small, costValue);
+        fonts.small.draw(batch, costValue, HP_BAR_X + HP_BAR_W - layout.width, y - 10f);
+        fonts.small.setColor(Color.WHITE);
     }
 
     private Array<BurialAnimation> captureBurialAnimationStarts(int ownerIndex, TurnPhase turnPhase) {
@@ -958,7 +1507,130 @@ public class MainScreen implements Screen {
 
     private void restartGame() {
         clearCardAnimations();
+        stagedSelectionCard = null;
+        stagedSelectionRequest = null;
         state.setupTest(state.players[0].chosenSuit);
+        resetHpDisplay();
+    }
+
+    private void drawSelectionLayer() {
+        GameState.CardSelectionRequest request = state.pendingSelection;
+        if (request == null) return;
+
+        shape.begin(ShapeRenderer.ShapeType.Filled);
+        shape.setColor(COL_TOOLTIP_SHADOW);
+        drawRoundedRect(SELECTION_PANEL.x + 7f, SELECTION_PANEL.y - 8f,
+            SELECTION_PANEL.width, SELECTION_PANEL.height, 12f);
+        shape.setColor(COL_SELECTION_PANEL);
+        drawRoundedRect(SELECTION_PANEL.x, SELECTION_PANEL.y,
+            SELECTION_PANEL.width, SELECTION_PANEL.height, 12f);
+        shape.setColor(COL_TOOLTIP_LINE);
+        shape.rect(SELECTION_PANEL.x + 16f, SELECTION_PANEL.y + 48f,
+            SELECTION_PANEL.width - 32f, 1f);
+        float confirmX = SELECTION_CONFIRM.x + SELECTION_CONFIRM.width / 2f;
+        float confirmY = SELECTION_CONFIRM.y + SELECTION_CONFIRM.height / 2f;
+        Color confirmColor = stagedSelectionCard == null ? COL_TOOLTIP_LINE : COL_SELECTION_SELECTED;
+        float confirmPulse = stagedSelectionCard == null ? 0f : MathUtils.sin(hudTime * 4f) * 2f;
+        shape.setColor(confirmColor.r, confirmColor.g, confirmColor.b,
+            stagedSelectionCard == null ? 0.16f : 0.28f);
+        shape.circle(confirmX, confirmY, 23f + confirmPulse, 32);
+        shape.setColor(COL_SELECTION_PANEL);
+        shape.circle(confirmX, confirmY, 17f, 32);
+        shape.setColor(confirmColor);
+        shape.triangle(confirmX - 5f, confirmY - 8f,
+            confirmX - 5f, confirmY + 8f, confirmX + 9f, confirmY);
+
+        for (int i = 0; i < request.candidates.size; i++) {
+            if (isCardInPlayerHand(request.candidates.get(i))) continue;
+            Rectangle bounds = selectionCardBounds(request.candidates.size, i);
+            shape.setColor(request.candidates.get(i) == stagedSelectionCard
+                ? COL_SELECTION_SELECTED
+                : bounds.contains(mouse) ? COL_SELECTION_HOVER : COL_SELECTION_BORDER);
+            shape.rect(bounds.x - 4f, bounds.y - 4f, bounds.width + 8f, bounds.height + 8f);
+            shape.setColor(0.02f, 0.025f, 0.05f, 1f);
+            shape.rect(bounds.x - 1f, bounds.y - 1f, bounds.width + 2f, bounds.height + 2f);
+        }
+        shape.end();
+
+        batch.begin();
+        fonts.tooltipTitle.setColor(Color.WHITE);
+        fonts.tooltipTitle.draw(batch, request.title, SELECTION_PANEL.x + 16f,
+            SELECTION_PANEL.y + SELECTION_PANEL.height - 18f);
+        fonts.tooltipBody.setColor(COL_TOOLTIP_MUTED);
+        fonts.tooltipBody.draw(batch, request.instruction, SELECTION_PANEL.x + 16f,
+            SELECTION_PANEL.y + SELECTION_PANEL.height - 42f);
+        for (int i = 0; i < request.candidates.size; i++) {
+            Card card = request.candidates.get(i);
+            if (isCardInPlayerHand(card)) continue;
+            Rectangle bounds = selectionCardBounds(request.candidates.size, i);
+            Texture illust = assets.cardIllust(card);
+            if (illust != null) {
+                batch.draw(illust, bounds.x, bounds.y, bounds.width, bounds.height,
+                    0, 0, illust.getWidth(), illust.getHeight(), false, card.shouldFlipIllust());
+            }
+        }
+        fonts.small.setColor(Color.WHITE);
+        fonts.normal.setColor(Color.WHITE);
+        fonts.tooltipBody.setColor(Color.WHITE);
+        fonts.tooltipTitle.setColor(Color.WHITE);
+        batch.end();
+    }
+
+    private Rectangle selectionCardBounds(int count, int index) {
+        float width = CardRenderer.CARD_W * SELECTION_CARD_SCALE;
+        float height = CardRenderer.CARD_H * SELECTION_CARD_SCALE;
+        float total = count * width + Math.max(0, count - 1) * SELECTION_CARD_GAP;
+        float startX = GameConfig.WORLD_W / 2f - total / 2f;
+        return new Rectangle(startX + index * (width + SELECTION_CARD_GAP),
+            350f, width, height);
+    }
+
+    private boolean handleSelectionClick(boolean left) {
+        GameState.CardSelectionRequest request = state.pendingSelection;
+        if (request == null) return false;
+        if (!left) return true;
+
+        if (SELECTION_CONFIRM.contains(mouse) && stagedSelectionCard != null) {
+            Array<Card> selected = new Array<>();
+            selected.add(stagedSelectionCard);
+            state.completeCardSelection(selected);
+            return true;
+        }
+
+        int handIndex = getHandIndexAt(state.players[0].hand, HAND0_Y, mouse.x, mouse.y);
+        if (handIndex >= 0) {
+            Card card = state.players[0].hand.get(handIndex);
+            if (isHandSelectionCandidate(card)) stagedSelectionCard = card;
+            return true;
+        }
+
+        for (int i = 0; i < request.candidates.size; i++) {
+            Card card = request.candidates.get(i);
+            if (isCardInPlayerHand(card)) continue;
+            if (selectionCardBounds(request.candidates.size, i).contains(mouse)) {
+                stagedSelectionCard = card;
+                return true;
+            }
+        }
+        return true;
+    }
+
+    private void syncSelectionState() {
+        if (state.pendingSelection == stagedSelectionRequest) return;
+        stagedSelectionRequest = state.pendingSelection;
+        stagedSelectionCard = null;
+    }
+
+    private boolean isHandSelectionCandidate(Card card) {
+        if (card == null || state.pendingSelection == null) return false;
+        for (Card candidate : state.pendingSelection.candidates) {
+            if (candidate == card) return true;
+        }
+        return false;
+    }
+
+    private boolean isCardInPlayerHand(Card card) {
+        return indexOfIdentity(state.players[0].hand, card) >= 0;
     }
 
     // 입력 처리
@@ -967,6 +1639,8 @@ public class MainScreen implements Screen {
         boolean right = Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT);
         if (!left && !right) return;
         float wx = mouse.x, wy = mouse.y;
+
+        if (handleSelectionClick(left)) return;
 
         if (state.phase == GamePhase.GAME_OVER) {
             if (left && btnRestart.contains(wx, wy))
@@ -978,7 +1652,12 @@ public class MainScreen implements Screen {
 
         if (left) {
             if (btnDraw.contains(wx, wy)) {
-                debugDrawCurrentCard();
+                Player current = state.currentPlayer();
+                if (current.stagedCards.size > 0) {
+                    state.resolveStagedCards(current);
+                } else {
+                    debugDrawCurrentCard();
+                }
                 return;
             }
             if (btnPhase.contains(wx, wy)) {
@@ -993,21 +1672,19 @@ public class MainScreen implements Screen {
 
         // 카드 클릭
         Player current = state.currentPlayer();
+        int stagedIndex = stagedCardIndexAt(current, wx, wy);
+        if (left && stagedIndex >= 0) {
+            state.unstageCard(current, stagedIndex);
+            return;
+        }
+
         float  handY = (state.currentPlayerIndex == 0) ? HAND0_Y : HAND1_Y;
         int    idx = getHandIndexAt(current.hand, handY, wx, wy);
 
         if (idx < 0) return;
 
         if (left) {
-            int ownerIndex = state.playerIndex(current);
-            float startCenterX = handCardCenterX(current.hand.size, idx);
-            float startCenterY = handCardCenterY(handY, idx);
-
-            Card played = state.playCardFromHand(current, idx);
-            if (played == null) return;
-
-            startPlayAnimation(played, current, ownerIndex, startCenterX, startCenterY);
-
+            state.stageCardFromHand(current, idx);
         } else {
             Card card = current.hand.get(idx);
             card.setReversed(!card.reversed, false);
@@ -1032,6 +1709,5 @@ public class MainScreen implements Screen {
         batch.dispose();
         shape.dispose();
         fonts.dispose();
-        assets.dispose();
     }
 }

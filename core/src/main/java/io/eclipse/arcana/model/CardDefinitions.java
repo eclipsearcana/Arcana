@@ -2,6 +2,7 @@ package io.eclipse.arcana.model;
 
 import com.badlogic.gdx.utils.Array;
 import io.eclipse.arcana.model.effect.BaseCardEffect;
+import io.eclipse.arcana.model.effect.InteractiveEffects;
 import io.eclipse.arcana.model.effect.MajorEffects;
 import io.eclipse.arcana.model.effect.MinorEffects;
 
@@ -60,19 +61,19 @@ public class CardDefinitions {
         if (id == null || id.contains("/")) return null;
 
         switch (id) {
-            case "Fool":     return new MajorEffects.Fool();
-            case "Magician": return new MajorEffects.Magician();
-            case "Priestness": return new MajorEffects.Priestness();
+            case "Fool":     return new InteractiveEffects.Fool();
+            case "Magician": return new InteractiveEffects.Magician();
+            case "Priestess": return new InteractiveEffects.Priestess();
             case "Empress":  return new MajorEffects.Empress();
             case "Emperor":  return new MajorEffects.Emperor();
             case "Hierophant": return new MajorEffects.Hierophant();
-            case "Lovers":   return new MajorEffects.Lovers();
-            case "Chariot":  return new MajorEffects.Chariot();
+            case "Lovers":   return new InteractiveEffects.Lovers();
+            case "Chariot":  return new InteractiveEffects.Chariot();
             case "Strength": return new MajorEffects.Strength();
             case "Hermit":   return new MajorEffects.Hermit();
             case "Fortune":  return new MajorEffects.Fortune();
-            case "Justice":  return new MajorEffects.Justice();
-            case "HangedMan": return new MajorEffects.HangedMan();
+            case "Justice":  return new InteractiveEffects.Justice();
+            case "HangedMan": return new InteractiveEffects.HangedMan();
             case "Death":    return new MajorEffects.Death();
             case "Temperance": return new MajorEffects.Temperance();
             case "Devil":    return new MajorEffects.Devil();
@@ -81,7 +82,7 @@ public class CardDefinitions {
             case "Moon":     return new MajorEffects.Moon();
             case "Sun":      return new MajorEffects.Sun();
             case "Judgement": return new MajorEffects.Judgement();
-            case "World":    return new MajorEffects.World();
+            case "World":    return new InteractiveEffects.World();
             default:         return null;
         }
     }
@@ -117,10 +118,10 @@ public class CardDefinitions {
                 switch (rank) {
                     case "Ace":    return new MinorEffects.Cups.Ace();
                     case "Two":    return new MinorEffects.Cups.Two();
-                    case "Three":  return new MinorEffects.Cups.Three();
+                    case "Three":  return new InteractiveEffects.CupsThree();
                     case "Four":   return new MinorEffects.Cups.Four();
                     case "Five":   return new MinorEffects.Cups.Five();
-                    case "Six":    return new MinorEffects.Cups.Six();
+                    case "Six":    return new InteractiveEffects.CupsSix();
                     case "Seven":  return new MinorEffects.Cups.Seven();
                     case "Eight":  return new MinorEffects.Cups.Eight();
                     case "Nine":   return new MinorEffects.Cups.Nine();
@@ -145,7 +146,7 @@ public class CardDefinitions {
                     case "Nine":   return new MinorEffects.Swords.Nine();
                     case "Ten":    return new MinorEffects.Swords.Ten();
                     case "Page":   return new MinorEffects.Swords.Page();
-                    case "Knight": return new MinorEffects.Swords.Knight();
+                    case "Knight": return new InteractiveEffects.SwordsKnight();
                     case "Queen":  return new MinorEffects.Swords.Queen();
                     case "King":   return new MinorEffects.Swords.King();
                 }
@@ -155,7 +156,7 @@ public class CardDefinitions {
                 switch (rank) {
                     case "Ace":    return new MinorEffects.Pentacles.Ace();
                     case "Two":    return new MinorEffects.Pentacles.Two();
-                    case "Three":  return new MinorEffects.Pentacles.Three();
+                    case "Three":  return new InteractiveEffects.PentaclesThree();
                     case "Four":   return new MinorEffects.Pentacles.Four();
                     case "Five":   return new MinorEffects.Pentacles.Five();
                     case "Six":    return new MinorEffects.Pentacles.Six();

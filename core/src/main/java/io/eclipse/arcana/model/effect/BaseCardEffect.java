@@ -14,11 +14,6 @@ public abstract class BaseCardEffect implements CardEffect {
 
         if (card.isHalfPower) multiplier *= 0.5f;
 
-        if (card.isIllusion && new java.util.Random().nextBoolean()) {
-            GameState.logActive("(!) 환영이 연기처럼 사라졌습니다.");
-            return 0;
-        }
-
         return Math.max(0, Math.round(amount * multiplier));
     }
 
@@ -45,7 +40,7 @@ public abstract class BaseCardEffect implements CardEffect {
         GameState.logActive("[피해] " + playerLabel(caster) + " -> " + playerLabel(target)
             + " " + finalAmount + " 피해 (" + beforeHp + " -> " + target.hp + ")");
 
-        if (target.reflectRatio > 0 && finalAmount > 0 && caster != null) {
+        if (target.reflectRatio > 0 && finalAmount > 0 && caster != null && caster != target) {
             int reflected = Math.round(finalAmount * target.reflectRatio);
             int casterBeforeHp = caster.hp;
             caster.hp = Math.max(0, caster.hp - reflected);
@@ -57,6 +52,7 @@ public abstract class BaseCardEffect implements CardEffect {
 
     protected void heal(Player caster, int amount) {
         if (caster.healBlocked) {
+            caster.healBlocked = false;
             GameState.logActive("[회복 차단] " + playerLabel(caster));
             return;
         }
@@ -88,6 +84,13 @@ public abstract class BaseCardEffect implements CardEffect {
 
     protected float hpRatio(Player player) {
         return (float) player.hp / GameConfig.PLAYER_HP_START;
+    }
+
+    protected void sacrificeHp(Player player, int amount) {
+        int beforeHp = player.hp;
+        player.hp = Math.max(0, player.hp - Math.max(0, amount));
+        GameState.logActive("[HP sacrifice] " + playerLabel(player)
+            + " " + amount + " (" + beforeHp + " -> " + player.hp + ")");
     }
 
     private String playerLabel(Player player) {
