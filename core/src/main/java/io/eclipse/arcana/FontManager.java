@@ -44,8 +44,11 @@ public class FontManager implements Disposable {
     public final BitmapFont tooltipBody;
     /** ~20 world-units — 툴팁 제목 */
     public final BitmapFont tooltipTitle;
+    /** ~11 world-units — 플레이어 스탯 패널 (Apple SD Gothic Neo) */
+    public final BitmapFont statFont;
 
     private final FreeTypeFontGenerator generator;
+    private final FreeTypeFontGenerator statGenerator;
 
     /**
      * @param pxPerUnit 월드 유닛 1당 물리 픽셀 수.
@@ -58,6 +61,15 @@ public class FontManager implements Disposable {
         title  = make(Math.round(40 * pxPerUnit));
         tooltipBody = make(Math.round(9 * pxPerUnit));
         tooltipTitle = make(Math.round(13 * pxPerUnit));
+
+        com.badlogic.gdx.files.FileHandle appleFontFile = ArcanaFiles.asset("fonts/AppleSDGothicNeo-Medium.ttf");
+        if (appleFontFile != null && appleFontFile.exists()) {
+            statGenerator = new FreeTypeFontGenerator(appleFontFile);
+            statFont = make(statGenerator, Math.round(11 * pxPerUnit));
+        } else {
+            statGenerator = null;
+            statFont = make(generator, Math.round(11 * pxPerUnit));
+        }
     }
 
     private FreeTypeFontGenerator loadGenerator() {
@@ -73,6 +85,10 @@ public class FontManager implements Disposable {
     }
 
     private BitmapFont make(int px) {
+        return make(generator, px);
+    }
+
+    private BitmapFont make(FreeTypeFontGenerator gen, int px) {
         FreeTypeFontParameter p = new FreeTypeFontParameter();
         p.size = Math.max(8, Math.round(px * FONT_SUPERSAMPLE));
         p.characters = FreeTypeFontGenerator.DEFAULT_CHARS + KOREAN_UI_CHARS;
@@ -81,7 +97,7 @@ public class FontManager implements Disposable {
         p.minFilter = TextureFilter.Linear;
         p.magFilter = TextureFilter.Linear;
 
-        BitmapFont font = generator.generateFont(p);
+        BitmapFont font = gen.generateFont(p);
         font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
         font.getData().setScale(1f / FONT_SUPERSAMPLE);
         return font;
@@ -94,6 +110,12 @@ public class FontManager implements Disposable {
         title.dispose();
         tooltipBody.dispose();
         tooltipTitle.dispose();
+        if (statFont != null) {
+            statFont.dispose();
+        }
         generator.dispose();  // incremental 폰트는 generator보다 먼저 dispose
+        if (statGenerator != null) {
+            statGenerator.dispose();
+        }
     }
 }

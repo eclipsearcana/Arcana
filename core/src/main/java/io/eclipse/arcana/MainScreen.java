@@ -833,16 +833,15 @@ public class MainScreen implements Screen {
         for (int i = DECK_LAYERS - 1; i >= 0; i--) {
             float offsetX = i * GameConfig.DECK_LAYER_OFFSET_X;
             float offsetY = -i * GameConfig.DECK_LAYER_OFFSET_Y;
-            float brightness = 1f - i * 0.15f;
-            float alpha = 1f;
-            int color = toFloatBits(brightness, brightness, brightness, alpha);
+            float brightness = MathUtils.clamp(1f - i * 0.07f, 0.55f, 1f);
 
             drawCardPerspective(back,
                 DECK_X - DECK_W / 2f + offsetX,
                 DECK_Y - DECK_H / 2f + offsetY,
                 DECK_W, DECK_H,
                 GameConfig.DECK_TAPER,
-                GameConfig.DECK_LEAN);
+                GameConfig.DECK_LEAN,
+                brightness);
         }
         batch.setColor(1f, 1f, 1f, 1f);
     }
@@ -852,6 +851,15 @@ public class MainScreen implements Screen {
                                      float w, float h,
                                      float taper,
                                      float lean) {
+        drawCardPerspective(tex, x, y, w, h, taper, lean, 1f);
+    }
+
+    private void drawCardPerspective(Texture tex,
+                                     float x, float y,
+                                     float w, float h,
+                                     float taper,
+                                     float lean,
+                                     float brightness) {
         float u = 0f, v = 0f, u2 = 1f, v2 = 1f;
 
         // 좌하 기준 좌표 → 중앙 기준으로 변환
@@ -863,7 +871,7 @@ public class MainScreen implements Screen {
         float x2 = cx + w / 2f - taper + lean, y2 = cy + h / 2f;  // 우상
         float x3 = cx - w / 2f + taper + lean, y3 = cy + h / 2f;  // 좌상
 
-        float cf = Float.intBitsToFloat(toFloatBits(1f, 1f, 1f, 1f));
+        float cf = Float.intBitsToFloat(toFloatBits(brightness, brightness, brightness, 1f));
 
         float[] verts = {
             x0, y0, cf, u,  v2,

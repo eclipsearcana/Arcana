@@ -19,6 +19,7 @@ public class MajorEffects {
 
                 // 카드 복제
                 Card clone = original.copy();
+                clone.ownerIndex = state.playerIndex(caster);
 
                 // 코스트 0 + 효과 절반
                 clone.costModifier = -clone.cost;
@@ -55,6 +56,7 @@ public class MajorEffects {
             if (caster.hand.size > 0) {
                 Card original = caster.hand.get(new java.util.Random().nextInt(caster.hand.size));
                 Card illusion = original.copy();
+                illusion.ownerIndex = state.playerIndex(caster);
 
                 illusion.isIllusion = true;
                 illusion.costModifier = -illusion.cost;

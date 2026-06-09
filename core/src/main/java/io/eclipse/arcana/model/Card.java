@@ -12,7 +12,11 @@ public class Card {
     public final ArcanaType type;
     public final Suit suit;
     public final int cost;
+    public final int reversedCost;
     public final boolean isExtinction;
+
+    // The player whose deck this physical card belongs to. Hand swaps and steals do not change it.
+    public int ownerIndex = -1;
 
     public boolean isRevealed = false;
 
@@ -58,7 +62,11 @@ public class Card {
     }
 
     public int effectiveCost() {
-        return Math.max(0, cost + costModifier + turnCostModifier);
+        return Math.max(0, baseCost() + costModifier + turnCostModifier);
+    }
+
+    public int baseCost() {
+        return reversed ? reversedCost : cost;
     }
 
     // 광대
@@ -71,7 +79,8 @@ public class Card {
     public boolean isIllusion = false;
 
     public Card copy() {
-        Card newCard = new Card(this.id, this.name, this.type, this.suit, this.cost, this.isExtinction);
+        Card newCard = new Card(
+            this.id, this.name, this.type, this.suit, this.cost, this.reversedCost, this.isExtinction);
         newCard.isCloned = true;
         newCard.reversed = this.reversed;
         newCard.effectMark = EffectMark.SPECIAL;
@@ -79,11 +88,17 @@ public class Card {
     }
 
     public Card(String id, String name, ArcanaType type, Suit suit, int cost, boolean isExtinction) {
+        this(id, name, type, suit, cost, cost, isExtinction);
+    }
+
+    public Card(String id, String name, ArcanaType type, Suit suit,
+                int cost, int reversedCost, boolean isExtinction) {
         this.id = id;
         this.name = name;
         this.type = type;
         this.suit = suit;
         this.cost = cost;
+        this.reversedCost = reversedCost;
         this.isExtinction = isExtinction;
     }
 }

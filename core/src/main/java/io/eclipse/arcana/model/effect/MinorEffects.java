@@ -508,7 +508,7 @@ public class MinorEffects {
         public static class Ace extends BaseCardEffect {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
-                addCost(caster, 2);
+                growCost(caster, 2);
             }
         }
 
@@ -516,7 +516,7 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 damage(caster, target, 3);
-                addCost(caster, 1);
+                growCost(caster, 1);
             }
         }
 
@@ -552,7 +552,7 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 damage(caster, target, 6);
-                addCost(caster, 2);
+                growCost(caster, 2);
             }
         }
 
@@ -560,7 +560,7 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 reduceCost(target, 2);
-                addCost(caster, 2);
+                growCost(caster, 2);
             }
         }
 

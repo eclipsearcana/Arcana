@@ -17,6 +17,7 @@ public final class InteractiveEffects {
                     if (selected.size == 0) return;
                     Card original = selected.first();
                     Card clone = original.copy();
+                    clone.ownerIndex = state.playerIndex(caster);
                     clone.costModifier = -clone.cost;
                     clone.isHalfPower = true;
                     clone.effectMark = Card.EffectMark.SPECIAL;
@@ -51,6 +52,7 @@ public final class InteractiveEffects {
                 chooseUpToThree(caster.hand), 1, selected -> {
                     if (selected.size == 0) return;
                     Card illusion = selected.first().copy();
+                    illusion.ownerIndex = state.playerIndex(caster);
                     illusion.isIllusion = true;
                     illusion.costModifier = -illusion.cost;
                     illusion.effectMark = Card.EffectMark.SPECIAL;

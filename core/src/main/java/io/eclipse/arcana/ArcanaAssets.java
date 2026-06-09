@@ -43,6 +43,7 @@ public class ArcanaAssets {
         queueTitleSet("TitleA/", "A");
         queueTitleSet("TitleB/", "B");
         queueTexture("choose/background_choose.png");
+        queueTexture("choose/Title_Choose.png");
         queueTexture("choose/wands.png");
         queueTexture("choose/wands_back.png");
         queueTexture("choose/WANDS_transparent.png");
@@ -64,9 +65,15 @@ public class ArcanaAssets {
         String bg = "ui/Game_Background.png";
         if (fileExists(bg)) manager.load(bg, Texture.class);
         queueTexture("ui/Draft_Background.png");
+        queueTexture("ui/Draft_Title.png");
+        queueTexture("ui/Draft_Round1.png");
+        queueTexture("ui/Draft_Round2.png");
+        queueTexture("ui/Draft_Select_Button.png");
         queueTexture("ui/StatFrame.png");
         queueTexture("ui/HPBar.png");
         queueTexture("ui/CostUI.png");
+        queueTexture("ui/clock/clock.png");
+        queueTexture("ui/clock/second_hand.png");
         for (Suit suit : SUITS) {
             queueTexture("ui/rune/" + suit.name().toLowerCase() + "_masked.png");
         }
@@ -108,7 +115,7 @@ public class ArcanaAssets {
             }
 
             // 마이너 카드 코스트 이러스트
-            for (int cost = 1; cost <= 4; cost++) {
+            for (int cost = 0; cost <= 4; cost++) {
                 String costPath = "cards/minor/Cost/" + suitName + "_" + cost + ".png";
                 if (fileExists(costPath)) manager.load(costPath, Texture.class);
 
@@ -193,7 +200,7 @@ public class ArcanaAssets {
             return manager.isLoaded(base) ? manager.get(base, Texture.class) : null;
         } else {
             String suitName = cap(card.suit.name());
-            int imageCost = effectiveCost >= 1 && effectiveCost <= 4 ? effectiveCost : card.cost;
+            int imageCost = effectiveCost >= 0 && effectiveCost <= 4 ? effectiveCost : card.cost;
             String base = "cards/minor/Cost/" + suitName + "_" + imageCost + ".png";
 
             if (card.reversed && imageCost == 4) {
@@ -219,6 +226,21 @@ public class ArcanaAssets {
         return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
     }
 
+    public Texture draftTitle() {
+        String path = "ui/Draft_Title.png";
+        return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
+    }
+
+    public Texture draftRound(int round) {
+        String path = "ui/Draft_Round" + round + ".png";
+        return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
+    }
+
+    public Texture draftSelectButton() {
+        String path = "ui/Draft_Select_Button.png";
+        return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
+    }
+
     public Texture hpBar() {
         String path = "ui/HPBar.png";
         return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
@@ -231,6 +253,11 @@ public class ArcanaAssets {
 
     public Texture costUi() {
         String path = "ui/CostUI.png";
+        return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
+    }
+
+    public Texture clock(String name) {
+        String path = "ui/clock/" + name + ".png";
         return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
     }
 

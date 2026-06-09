@@ -281,9 +281,13 @@ public class GameState {
         for (int i = 0; i < players.length; i++) {
             Player p = players[i];
             Array<Card> startingDeck = startingDecks.get(i);
+            for (Card card : startingDeck) card.ownerIndex = i;
             if (draftedStart) {
                 Array<Card> draftedMajors = i == 0 ? playerDraftMajors : opponentDraftMajors;
-                for (Card card : draftedMajors) addDrawnCardToHand(p, card);
+                for (Card card : draftedMajors) {
+                    card.ownerIndex = i;
+                    addDrawnCardToHand(p, card);
+                }
                 addStartingNumberCards(p, startingDeck, 3);
             }
             startingDeck.shuffle();
@@ -373,7 +377,8 @@ public class GameState {
         if (card.lockedInHand || (player.majorBlocked && card.type == Card.ArcanaType.MAJOR)) return false;
         if (player.playLimit == 0
             || (player.playLimit > 0 && player.stagedCards.size >= player.playLimit)) return false;
-        if (!player.canOverpayCostWithHpThisTurn
+        if (!GameConfig.DEV_NO_COST_LIMIT
+            && !player.canOverpayCostWithHpThisTurn
             && stagedCost(player) + effectiveCostFor(player, card) > player.cost) return false;
 
         player.hand.removeIndex(handIndex);
@@ -483,7 +488,9 @@ public class GameState {
         }
         if (!effectDelayed) resetTemporaryPower(card);
 
-        if (card.isExtinction) {
+        if (isBorrowedMinor(player, card)) {
+            returnBorrowedMinorToOwner(card);
+        } else if (card.isExtinction) {
             player.removedCards.add(card);
             log("[시스템] " + card.name + " 카드가 소멸되었습니다.");
         } else if (keepPlayedCard) {
@@ -501,6 +508,22 @@ public class GameState {
         if (!forced) applyPostPlayTriggers(player);
         checkWinCondition();
         return card;
+    }
+
+    private boolean isBorrowedMinor(Player player, Card card) {
+        int currentOwnerIndex = playerIndex(player);
+        return card.type == Card.ArcanaType.MINOR
+            && card.ownerIndex >= 0
+            && card.ownerIndex != currentOwnerIndex;
+    }
+
+    private void returnBorrowedMinorToOwner(Card card) {
+        clearTransientCardState(card);
+        card.isRevealed = false;
+        Player owner = players[card.ownerIndex];
+        owner.deck.add(card);
+        owner.deck.shuffle();
+        log("[CARD RETURN] " + card.name + " -> " + playerLabel(owner) + " deck");
     }
 
     private void applyPostPlayTriggers(Player player) {

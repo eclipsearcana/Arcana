@@ -50,9 +50,9 @@ public class GameConfig {
     public static final float DECK_Y              = 550f;
     public static final float DECK_W_SCALE        = 0.8f;
     public static final float DECK_H_SCALE        = 0.6f;
-    public static final int   DECK_LAYERS         = 3;
-    public static final float DECK_LAYER_OFFSET_X = 1f;
-    public static final float DECK_LAYER_OFFSET_Y = 3f;
+    public static final int   DECK_LAYERS         = 7;
+    public static final float DECK_LAYER_OFFSET_X = 2f;
+    public static final float DECK_LAYER_OFFSET_Y = 4f;
     public static final float DECK_TAPER = 10f;
     public static final float DECK_LEAN = 30f;
 

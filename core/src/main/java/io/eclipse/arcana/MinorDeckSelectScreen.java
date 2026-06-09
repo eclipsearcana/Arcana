@@ -61,6 +61,8 @@ public class MinorDeckSelectScreen implements Screen {
     private float transitionAlpha;
     private boolean disposed;
 
+    private Texture titleTexture;
+
     public MinorDeckSelectScreen(Core game) {
         this.game = game;
     }
@@ -81,6 +83,8 @@ public class MinorDeckSelectScreen implements Screen {
             panelBounds[i] = new Rectangle(CARD_CENTERS[i] - CARD_W / 2f, CARD_Y, CARD_W, CARD_H);
             flipAngle[i] = 0f;
         }
+
+        titleTexture = requireChooseTexture("Title_Choose");
     }
 
     private Texture requireChooseTexture(String name) {
@@ -157,6 +161,13 @@ public class MinorDeckSelectScreen implements Screen {
 
     private void drawIllustrations() {
         batch.begin();
+
+        batch.setColor(1f, 1f, 1f, fadeAlpha);
+        float tw = 388f;
+        float th = 140f;
+        batch.draw(titleTexture, (WORLD_W - tw) / 2f, 835f, tw, th);
+        batch.setColor(Color.WHITE);
+
         for (int i = 0; i < illustrations.length; i++) {
             Rectangle panel = panelBounds[i];
             float hover = Interpolation.smoother.apply(hoverAnim[i]);

@@ -66,12 +66,15 @@ subprojects {
   }
 }
 
-tasks.withType(JavaCompile) {
-  options.encoding = 'UTF-8'
-}
+allprojects {
+  tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-Xlint:-options'
+  }
 
-tasks.withType(JavaExec) {
-  jvmArgs('-Dfile.encoding=UTF-8')
+  tasks.withType(JavaExec) {
+    jvmArgs('-Dfile.encoding=UTF-8')
+  }
 }
 
 eclipse.project.name = 'Arcana' + '-parent'

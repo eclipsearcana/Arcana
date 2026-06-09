@@ -30,6 +30,7 @@ public class SimpleAiOpponent implements PlayerController {
     private static final float HP_MAX     = GameConfig.PLAYER_HP_START;
 
     private final int playerIndex;
+    private final BasicAiTurnPlanner turnPlanner = new BasicAiTurnPlanner();
     private float timer = THINK_TIME;
 
     public SimpleAiOpponent(int playerIndex) {
@@ -95,19 +96,18 @@ public class SimpleAiOpponent implements PlayerController {
     // ════════════════════════════════════════════════════════════════
 
     private void stagePlayableCards(GameState state, Player player) {
-        Array<CardChoice> choices = buildPlayableChoices(state, player);
-        choices.sort(Comparator.comparingInt(CardChoice::score).reversed());
+        BasicAiTurnPlan plan = turnPlanner.plan(buildPlayableCandidates(state, player), player);
 
         // GameState의 검증 로직을 그대로 사용하기 위해 hand index를 다시 찾아 스테이징합니다.
-        for (CardChoice choice : choices) {
-            int handIndex = indexOf(player.hand, choice.card);
+        for (Card card : plan.cardsToPlay) {
+            int handIndex = indexOf(player.hand, card);
             if (handIndex < 0) continue;
             state.stageCardFromHand(player, handIndex);
         }
     }
 
-    private Array<CardChoice> buildPlayableChoices(GameState state, Player player) {
-        Array<CardChoice> choices = new Array<>();
+    private Array<BasicAiTurnPlanner.Candidate> buildPlayableCandidates(GameState state, Player player) {
+        Array<BasicAiTurnPlanner.Candidate> choices = new Array<>();
 
         // 현재 턴에 낼 수 없는 카드는 후보에서 제외합니다.
         for (int i = 0; i < player.hand.size; i++) {
@@ -117,7 +117,8 @@ public class SimpleAiOpponent implements PlayerController {
             int cost = state.effectiveCostFor(player, card);
             if (!GameConfig.DEV_NO_COST_LIMIT
                 && !player.canOverpayCostWithHpThisTurn && cost > player.cost) continue;
-            choices.add(new CardChoice(card, evaluateCard(card, cost, state, player)));
+            choices.add(new BasicAiTurnPlanner.Candidate(
+                card, evaluateCard(card, cost, state, player), cost));
         }
         return choices;
     }
