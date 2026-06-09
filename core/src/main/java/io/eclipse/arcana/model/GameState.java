@@ -166,6 +166,10 @@ public class GameState {
 
     public void addDrawnCardToHand(Player player, Card drawn) {
         if (drawn == null) return;
+        if (player.hand.size >= GameConfig.HAND_MAX) {
+            player.deck.addBottom(drawn);
+            return;
+        }
 
         applyReverseChance(drawn);
         if (player.forceReversedDraw) drawn.setReversed(true, true);
@@ -445,7 +449,6 @@ public class GameState {
             }
         }
 
-        boolean keepPlayedCard = player.keepPlayedCardsInHandThisTurn || player.handLockTurns > 0;
         boolean effectsSwapped = player.effectsSwapped;
         boolean mirrorEffect = player.mirrorEffectsToSelfThisTurn;
         boolean effectNegated = player.effectsNegatedThisTurn;
@@ -493,7 +496,9 @@ public class GameState {
         } else if (card.isExtinction) {
             player.removedCards.add(card);
             log("[시스템] " + card.name + " 카드가 소멸되었습니다.");
-        } else if (keepPlayedCard) {
+        } else if (!card.id.equals("Chariot")
+            && (player.keepPlayedCardsInHandThisTurn || player.handLockTurns > 0)
+            && player.hand.size < GameConfig.HAND_MAX) {
             player.hand.add(card);
         } else {
             player.field.add(card);

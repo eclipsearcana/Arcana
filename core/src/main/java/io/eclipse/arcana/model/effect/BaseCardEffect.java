@@ -85,8 +85,8 @@ public abstract class BaseCardEffect implements CardEffect {
             + " / base " + beforeInit + " -> " + caster.costInit);
     }
 
-    protected void reduceCost(Player target, int amount) {
-        int scaled = getScaledAmount(null, amount);
+    protected void reduceCost(Player caster, Player target, int amount) {
+        int scaled = getScaledAmount(caster, amount);
         int beforeCost = target.cost;
         target.cost = Math.max(0, target.cost - scaled);
         GameState.logActive("[코스트 감소] " + playerLabel(target)

@@ -1,6 +1,7 @@
 package io.eclipse.arcana.model.effect;
 
 import com.badlogic.gdx.utils.Array;
+import io.eclipse.arcana.GameConfig;
 import io.eclipse.arcana.model.*;
 
 import java.util.Random;
@@ -353,7 +354,7 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 damage(caster, target, 3);
-                reduceCost(target, 1);
+                reduceCost(caster, caster, 1);
             }
         }
 
@@ -391,7 +392,7 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 damage(caster, target, 7);
-                if (target.hand.size > 0) {
+                if (target.hand.size > 0 && caster.hand.size < GameConfig.HAND_MAX) {
                     Card stolen = target.hand.removeIndex(new Random().nextInt(target.hand.size));
                     stolen.isRevealed = true;
                     state.addTransferredCardToHand(caster, stolen);
@@ -403,7 +404,7 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 damage(caster, target, 7);
-                reduceCost(target, 2);
+                reduceCost(caster, target, 2);
                 addCost(caster, 1);
 
             }
@@ -487,16 +488,18 @@ public class MinorEffects {
             public void executeUpright(GameState state, Player caster, Player target) {
                 for (Card c : caster.field) {
                     if (c.suit == Suit.SWORDS && !c.id.endsWith("/King")) {
-                        applySwordsInterference(state, caster, target, c);
+                        state.replayUprightEffect(c, caster, target);
                     }
                 }
             }
 
             @Override
             public void executeReversed(GameState state, Player caster, Player target) {
-                for (Card c : caster.field) {
-                    if (c.suit == Suit.SWORDS && !c.id.endsWith("/King")) {
-                        applySwordsInterference(state, caster, caster, c);
+                for (int i = caster.field.size - 1; i >= 0; i--) {
+                    Card card = caster.field.get(i);
+                    if (card.suit == Suit.SWORDS && !card.id.endsWith("/King")) {
+                        state.replayUprightEffect(card, caster, caster);
+                        break;
                     }
                 }
             }
@@ -508,7 +511,7 @@ public class MinorEffects {
         public static class Ace extends BaseCardEffect {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
-                growCost(caster, 2);
+                addCost(caster, 2);
             }
         }
 
@@ -516,7 +519,7 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 damage(caster, target, 3);
-                growCost(caster, 1);
+                addCost(caster, 1);
             }
         }
 
@@ -552,15 +555,15 @@ public class MinorEffects {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
                 damage(caster, target, 6);
-                growCost(caster, 2);
+                addCost(caster, 2);
             }
         }
 
         public static class Six extends BaseCardEffect {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
-                reduceCost(target, 2);
-                growCost(caster, 2);
+                reduceCost(caster, target, 2);
+                addCost(caster, 2);
             }
         }
 
@@ -664,7 +667,7 @@ public class MinorEffects {
         public static class King extends BaseCardEffect {
             @Override
             public void executeUpright(GameState state, Player caster, Player target) {
-                int sum = caster.currentCard == null ? 0 : caster.currentCard.cost;
+                int sum = 0;
                 for (Card c : caster.field) {
                     if (c.suit == Suit.PENTACLES && !c.id.endsWith("/King")) {
                         sum += c.cost;
@@ -675,7 +678,7 @@ public class MinorEffects {
 
             @Override
             public void executeReversed(GameState state, Player caster, Player target) {
-                int sum = caster.currentCard == null ? 0 : caster.currentCard.cost;
+                int sum = 0;
                 for (Card c : caster.field) {
                     if (c.suit == Suit.PENTACLES && !c.id.endsWith("/King")) {
                         sum += c.cost;
@@ -712,7 +715,7 @@ public class MinorEffects {
                 affected.nextTurnDrawModifier -= 1;
                 break;
             case "Seven":
-                if (affected.hand.size > 0) {
+                if (affected.hand.size > 0 && caster.hand.size < GameConfig.HAND_MAX) {
                     Card stolen = affected.hand.removeIndex(new Random().nextInt(affected.hand.size));
                     stolen.isRevealed = true;
                     Player receiver = affected == caster ? state.getOpponent(caster) : caster;

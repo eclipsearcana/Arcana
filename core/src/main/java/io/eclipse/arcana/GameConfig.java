@@ -20,7 +20,7 @@ public class GameConfig {
     public static final float REVERSE_DOOM_HP_RATIO      = 0.10f;
 
     // ── 개발 플래그 ───────────────────────────────────────────────────────────
-    public static final boolean DEV_NO_COST_LIMIT = true;
+    public static final boolean DEV_NO_COST_LIMIT = false;
     public static final boolean AI_OPPONENT_ENABLED = true;
     public static final boolean DEV_FORCE_REVERSE = false;
 

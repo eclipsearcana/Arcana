@@ -410,7 +410,7 @@ public class SimpleAiOpponent implements PlayerController {
                 return 16;
             case "Star":                                                    // 코스트 전부 사용 시: 드로우 1 + 다음 턴 코스트 ×2
                 return 16;
-            case "Moon":                                                    // 양쪽 핸드 숨기고 랜덤 1장씩 강제
+            case "Moon":                                                    // 상대 핸드 숨기고 랜덤 1장 강제
                 return 10;
             case "Sun":                                                     // 코스트 +3
                 return 15;

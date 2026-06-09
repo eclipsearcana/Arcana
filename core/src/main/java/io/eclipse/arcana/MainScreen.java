@@ -43,12 +43,12 @@ public class MainScreen implements Screen {
     private static final float FIELD_P0_Y = GameConfig.FIELD_P0_Y;
     private static final float FIELD_P1_Y = GameConfig.FIELD_P1_Y;
 
-    private static final float GRAVE_X = 1085f;
-    private static final float GRAVE_P0_Y = 245f;
-    private static final float GRAVE_P1_Y = 575f;
-    private static final float GRAVE_W = 270f;
-    private static final float GRAVE_H = 130f;
-    private static final float GRAVE_CARD_SCALE = 0.32f;
+    private static final float GRAVE_X = 1325f;
+    private static final float GRAVE_P0_Y = 420f;
+    private static final float GRAVE_P1_Y = 625f;
+    private static final float GRAVE_W = 240f;
+    private static final float GRAVE_H = 120f;
+    private static final float GRAVE_CARD_SCALE = 0.27f;
     private static final float GRAVE_CARD_GAP = 8f;
 
     // 호버
@@ -100,14 +100,19 @@ public class MainScreen implements Screen {
     private static final Color COL_TOOLTIP_ACTIVE = new Color(1f, 0.83f, 0.35f, 1f);
     private static final Color COL_TOOLTIP_REVERSED = new Color(0.93f, 0.58f, 0.68f, 1f);
     private static final Color COL_SELECTION_PANEL = new Color(0.035f, 0.04f, 0.075f, 0.98f);
-    private static final Color COL_SELECTION_BORDER = new Color(0.58f, 0.34f, 0.92f, 1f);
+    private static final Color COL_SELECTION_BORDER = new Color(0.34f, 0.30f, 0.46f, 1f);
     private static final Color COL_SELECTION_HOVER = new Color(0.22f, 0.86f, 1f, 1f);
     private static final Color COL_SELECTION_SELECTED = new Color(0.30f, 0.95f, 0.58f, 1f);
-    private static final Rectangle SELECTION_PANEL = new Rectangle(1050f, 278f, 320f, 126f);
-    private static final Rectangle SELECTION_CONFIRM = new Rectangle(1250f, 292f, 96f, 34f);
-    private static final float SELECTION_CARD_SCALE = 0.42f;
-    private static final float SELECTION_CARD_GAP = 18f;
+    private static final Color COL_STATUS_BUFF = new Color(0.38f, 0.78f, 1f, 1f);
+    private static final Color COL_STATUS_DEBUFF = new Color(1f, 0.38f, 0.48f, 1f);
+    private static final Color COL_STATUS_SPECIAL = new Color(0.82f, 0.58f, 1f, 1f);
+    private static final Rectangle SELECTION_PANEL = new Rectangle(115f, 145f, 1370f, 710f);
+    private static final Rectangle SELECTION_CONFIRM = new Rectangle(1340f, 785f, 100f, 38f);
+    private static final float SELECTION_CARD_SCALE = 0.58f;
+    private static final float SELECTION_CARD_GAP = 22f;
     private static final float SELECTION_LIFT = 42f;
+    private static final float SELECTION_DETAIL_H = 140f;
+    private static final float SELECTION_DETAIL_GAP = 14f;
 
     private static final float HP_BAR_X = 173f;
     private static final float HP_BAR_W = 261f;
@@ -131,6 +136,21 @@ public class MainScreen implements Screen {
     private static final float COST_UI_W = 296f;
     private static final float COST_UI_H = COST_UI_W * 770f / 2041f;
     private static final float COST_UI_Y_OFFSET = -82f;
+    private static final float CLOCK_CENTER_X = 1470f;
+    private static final float CLOCK_CENTER_Y = 870f;
+    private static final float CLOCK_SIZE = 190f;
+    private static final float SECOND_HAND_H = 80f;
+    private static final float SECOND_HAND_W = SECOND_HAND_H * 112f / 864f;
+    private static final float SECOND_HAND_PIVOT_Y = SECOND_HAND_H * 111f / 864f;
+    private static final float STATUS_X = HP_FRAME_X;
+    private static final float STATUS_PANEL_GAP = -18f;
+    private static final float STATUS_BADGE_W = 46f;
+    private static final float STATUS_BADGE_H = 28f;
+    private static final float STATUS_BADGE_GAP = 7f;
+    private static final float STATUS_ICON_SIZE = 22f;
+    private static final int STATUS_BADGE_LIMIT = 6;
+    private static final float STATUS_TOOLTIP_W = 310f;
+    private static final float STATUS_TOOLTIP_H = 82f;
     private static final float[] COST_SLOT_RATIOS = {
         132f / 2041f, 330f / 2041f, 527f / 2041f, 724f / 2041f, 921f / 2041f,
         1119f / 2041f, 1316f / 2041f, 1513f / 2041f, 1709f / 2041f, 1906f / 2041f
@@ -150,13 +170,12 @@ public class MainScreen implements Screen {
 
     private final Rectangle btnDraw    = new Rectangle(PANEL_X + 5f, PANEL_Y - 50f,  PANEL_W - 10f, BTN_H);
     private final Rectangle btnPhase   = new Rectangle(PANEL_X + 5f, PANEL_Y - 95f,  PANEL_W - 10f, BTN_H);
-    private final Rectangle btnDebug   = new Rectangle(PANEL_X + 5f, PANEL_Y - 140f, PANEL_W - 10f, BTN_H);
     private final Rectangle btnRestart = new Rectangle(PANEL_X + 5f, PANEL_Y - 185f, PANEL_W - 10f, BTN_H);
     private static final float STAGED_CARD_SCALE = 0.44f;
     private static final float STAGED_CARD_GAP = 12f;
     private static final float STAGED_CENTER_X = 185f;
     private static final float STAGED_CENTER_Y = 510f;
-    private static final float SELECTION_CARDS_Y = 430f;
+    private static final float SELECTION_CARDS_Y = 385f;
 
     private final Core game;
     private final DebugContext debugContext;
@@ -210,7 +229,9 @@ public class MainScreen implements Screen {
     private final int[] previousCost = new int[2];
     private final float[][] costGainAnim = new float[2][10];
     private final float[][] costSpendAnim = new float[2][10];
+    private final Array<Array<StatusBadge>> statusBadges = new Array<>();
     private float hudTime = 0f;
+    private StatusBadge hoveredStatus;
 
     // 카드 사용 애니메이션 상태
     private Card  playingCard    = null;
@@ -257,6 +278,22 @@ public class MainScreen implements Screen {
         }
     }
 
+    private static class StatusBadge {
+        final String label;
+        final String title;
+        final String description;
+        final Color color;
+        final String iconPath;
+
+        StatusBadge(String label, String title, String description, Color color, String iconPath) {
+            this.label = label;
+            this.title = title;
+            this.description = description;
+            this.color = color;
+            this.iconPath = iconPath;
+        }
+    }
+
     public MainScreen(Core game) {
         this(game, null, Suit.SWORDS);
     }
@@ -291,6 +328,9 @@ public class MainScreen implements Screen {
         state = playerDraftMajors == null
             ? new GameState(selectedSuit)
             : new GameState(selectedSuit, playerDraftMajors, opponentDraftMajors);
+        statusBadges.clear();
+        for (int i = 0; i < state.players.length; i++) statusBadges.add(new Array<>());
+        refreshStatusBadges();
         resetHpDisplay();
         resetCardZoneSnapshots();
         if (debugContext != null) {
@@ -321,6 +361,8 @@ public class MainScreen implements Screen {
         updateDrawAnim(delta);
         updateBurialAnims(delta);
         updateCurrentController(delta);
+        refreshStatusBadges();
+        hoveredStatus = statusBadgeAt(mouse.x, mouse.y);
 
         handleClick();
         detectCardZoneTransitions();
@@ -368,6 +410,7 @@ public class MainScreen implements Screen {
 
         drawSelectionLayer();
         drawTooltipLayer();
+        drawStatusTooltipLayer();
 
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
@@ -1305,11 +1348,8 @@ public class MainScreen implements Screen {
         }
         if (state.currentPlayer().stagedCards.size > 0) {
             drawStartButton(btnDraw);
-        } else {
-            drawBtn(btnDraw,  COL_BTN_NORMAL);
         }
         drawBtn(btnPhase, COL_BTN_NORMAL);
-        drawBtn(btnDebug, COL_BTN_DANGER);
     }
 
     private void drawBtn(Rectangle r, Color bg) {
@@ -1350,9 +1390,8 @@ public class MainScreen implements Screen {
         if (state.phase == GamePhase.GAME_OVER) {
             drawBtnLabel("다시 시작", btnRestart);
         } else {
-            drawBtnLabel(state.currentPlayer().stagedCards.size > 0 ? "시작" : "드로우", btnDraw);
+            if (state.currentPlayer().stagedCards.size > 0) drawBtnLabel("시작", btnDraw);
             drawBtnLabel("페이즈 진행", btnPhase);
-            drawBtnLabel("디버그: -25HP", btnDebug);
         }
         fonts.small.setColor(Color.WHITE);
     }
@@ -1369,6 +1408,8 @@ public class MainScreen implements Screen {
     private void drawHudShapes() {
         drawHpBarShape(0, HP_P0_Y);
         drawHpBarShape(1, HP_P1_Y);
+        drawStatusBadgeShapes(0, HP_P0_Y);
+        drawStatusBadgeShapes(1, HP_P1_Y);
     }
 
     private void drawHpPanels() {
@@ -1478,6 +1519,253 @@ public class MainScreen implements Screen {
         drawButtonLabels();
         drawHpBarText(0, HP_P0_Y);
         drawHpBarText(1, HP_P1_Y);
+        drawStatusBadgeLabels(0, HP_P0_Y);
+        drawStatusBadgeLabels(1, HP_P1_Y);
+        drawTurnClock();
+    }
+
+    private void drawStatusBadgeShapes(int playerIndex, float y) {
+        Array<StatusBadge> statuses = statusBadges.get(playerIndex);
+        for (int i = 0; i < statuses.size; i++) {
+            Rectangle bounds = statusBadgeBounds(playerIndex, i, y);
+            StatusBadge status = statuses.get(i);
+            boolean hovered = bounds.contains(mouse);
+            shape.setColor(status.color.r, status.color.g, status.color.b, hovered ? 1f : 0.86f);
+            drawRoundedRect(bounds.x, bounds.y, bounds.width, bounds.height, 7f);
+            shape.setColor(0.012f, 0.018f, 0.055f, hovered ? 0.90f : 0.96f);
+            drawRoundedRect(bounds.x + 2f, bounds.y + 2f, bounds.width - 4f, bounds.height - 4f, 5f);
+        }
+    }
+
+    private void drawStatusBadgeLabels(int playerIndex, float y) {
+        Array<StatusBadge> statuses = statusBadges.get(playerIndex);
+        float originalScaleX = fonts.small.getData().scaleX;
+        float originalScaleY = fonts.small.getData().scaleY;
+        fonts.small.getData().setScale(originalScaleX * 0.72f, originalScaleY * 0.72f);
+        for (int i = 0; i < statuses.size; i++) {
+            Rectangle bounds = statusBadgeBounds(playerIndex, i, y);
+            StatusBadge status = statuses.get(i);
+            Texture icon = assets.statusIcon(status.iconPath);
+            if (icon != null) {
+                batch.setColor(Color.WHITE);
+                batch.draw(icon,
+                    bounds.x + (bounds.width - STATUS_ICON_SIZE) / 2f,
+                    bounds.y + (bounds.height - STATUS_ICON_SIZE) / 2f,
+                    STATUS_ICON_SIZE, STATUS_ICON_SIZE);
+            } else {
+                GlyphLayout glyph = new GlyphLayout(fonts.small, status.label);
+                fonts.small.setColor(status.color);
+                fonts.small.draw(batch, status.label,
+                    bounds.x + (bounds.width - glyph.width) / 2f,
+                    bounds.y + (bounds.height + glyph.height) / 2f);
+            }
+        }
+        fonts.small.getData().setScale(originalScaleX, originalScaleY);
+        fonts.small.setColor(Color.WHITE);
+    }
+
+    private StatusBadge statusBadgeAt(float x, float y) {
+        for (int playerIndex = 0; playerIndex < state.players.length; playerIndex++) {
+            float panelY = playerIndex == 0 ? HP_P0_Y : HP_P1_Y;
+            Array<StatusBadge> statuses = statusBadges.get(playerIndex);
+            for (int i = 0; i < statuses.size; i++) {
+                if (statusBadgeBounds(playerIndex, i, panelY).contains(x, y)) return statuses.get(i);
+            }
+        }
+        return null;
+    }
+
+    private Rectangle statusBadgeBounds(int playerIndex, int index, float y) {
+        float panelY = y + HP_PANEL_Y_OFFSET;
+        float statusY = playerIndex == 0
+            ? panelY + HP_PANEL_H + STATUS_PANEL_GAP
+            : panelY - STATUS_BADGE_H - STATUS_PANEL_GAP;
+        return new Rectangle(
+            STATUS_X + index * (STATUS_BADGE_W + STATUS_BADGE_GAP),
+            statusY,
+            STATUS_BADGE_W,
+            STATUS_BADGE_H);
+    }
+
+    private void refreshStatusBadges() {
+        for (int playerIndex = 0; playerIndex < state.players.length; playerIndex++) {
+            Array<StatusBadge> all = playerStatuses(state.players[playerIndex]);
+            Array<StatusBadge> visible = statusBadges.get(playerIndex);
+            visible.clear();
+            if (all.size <= STATUS_BADGE_LIMIT) {
+                visible.addAll(all);
+                continue;
+            }
+
+            for (int i = 0; i < STATUS_BADGE_LIMIT - 1; i++) visible.add(all.get(i));
+            int hidden = all.size - visible.size;
+            visible.add(new StatusBadge("+" + hidden, "추가 상태 " + hidden + "개",
+                "표시 공간을 초과한 상태가 있습니다.", COL_STATUS_SPECIAL, null));
+        }
+    }
+
+    private Array<StatusBadge> playerStatuses(Player p) {
+        Array<StatusBadge> statuses = new Array<>();
+        if (p.carryOver) addStatus(statuses, "이월", "코스트 이월", "남은 코스트를 다음 턴까지 유지합니다.", COL_STATUS_BUFF);
+        if (p.saveHalfCostNextTurn) addStatus(statuses, "절반", "코스트 절반 보존", "남은 코스트의 절반을 다음 턴에 추가합니다.", COL_STATUS_BUFF);
+        if (p.nextTurnDrawModifier != 0) addSignedStatus(statuses, "드로", "다음 턴 드로우", p.nextTurnDrawModifier);
+        if (p.nextTurnCostModifier != 0) addSignedStatus(statuses, "코스트", "다음 턴 시작 코스트", p.nextTurnCostModifier);
+        if (p.nextTurnCostMultiplier > 1) addStatus(statuses, "x" + p.nextTurnCostMultiplier,
+            "다음 턴 코스트 배수", "다음 턴 시작 코스트가 " + p.nextTurnCostMultiplier + "배가 됩니다.", COL_STATUS_BUFF);
+        if (p.nextTurnFixedCost >= 0) addStatus(statuses, "고정", "다음 턴 코스트 고정",
+            "다음 턴 시작 코스트가 " + p.nextTurnFixedCost + "로 고정됩니다.", COL_STATUS_DEBUFF);
+        if (p.allCardsCostZeroThisTurn) addStatus(statuses, "0 COST", "모든 카드 코스트 0", "이번 턴 모든 카드의 코스트가 0입니다.", COL_STATUS_BUFF);
+        if (p.keepPlayedCardsInHandThisTurn) addStatus(statuses, "유지", "사용 카드 유지", "이번 턴 사용한 카드가 손패에 남습니다.", COL_STATUS_BUFF);
+        if (p.canOverpayCostWithHpThisTurn) addStatus(statuses, "HP결제", "HP 초과 지불", "부족한 코스트를 HP로 지불할 수 있습니다.", COL_STATUS_BUFF);
+        if (p.drawOnEmptyCostThisTurn) addStatus(statuses, "소진", "코스트 소진 보상", "코스트를 모두 쓰면 드로우하고 다음 턴 코스트가 증가합니다.", COL_STATUS_BUFF);
+        if (p.outgoingDamageBonus > 0 || p.lowHpOutgoingDamageBonus > 0) addStatus(statuses, "공격+", "추가 피해",
+            "현재 공격 피해에 보너스가 적용됩니다.", COL_STATUS_BUFF);
+        if (p.reflectRatio > 0f) addStatus(statuses, "반사", "피해 반사",
+            "다음 피해의 " + Math.round(p.reflectRatio * 100f) + "%를 반사합니다.", COL_STATUS_BUFF);
+        if (p.healMultiplier > 1) addStatus(statuses, "회복x" + p.healMultiplier, "회복 증폭",
+            "회복량이 " + p.healMultiplier + "배가 됩니다.", COL_STATUS_BUFF);
+        if (p.incomingDamageMultiplier < 1f) addStatus(statuses, "방어", "받는 피해 감소", "받는 피해가 감소합니다.", COL_STATUS_BUFF);
+        if (p.cannotBeTargeted) addStatus(statuses, "은신", "대상 지정 불가", "상대 효과의 대상이 되지 않습니다.", COL_STATUS_BUFF);
+        if (p.fakeShieldTurns > 0) addStatus(statuses, "가호" + p.fakeShieldTurns, "가짜 보호막",
+            "피해를 막지만 만료 시 막은 피해가 되돌아옵니다.", COL_STATUS_SPECIAL);
+        if (p.delayedEffects.size > 0) addStatus(statuses, "지연" + p.delayedEffects.size, "지연된 효과",
+            "다음 드로우 단계에 효과가 발동합니다.", COL_STATUS_SPECIAL);
+
+        if (p.majorBlocked) addStatus(statuses, "메이저X", "메이저 카드 봉쇄", "메이저 카드를 사용할 수 없습니다.", COL_STATUS_DEBUFF);
+        if (p.drawBlocked) addStatus(statuses, "드로X", "드로우 봉쇄", "다음 드로우를 할 수 없습니다.", COL_STATUS_DEBUFF);
+        if (p.effectsSwapped) addStatus(statuses, "반전", "카드 효과 반전", "정방향과 역방향 효과가 서로 바뀝니다.", COL_STATUS_DEBUFF);
+        if (p.effectsNegatedThisTurn) addStatus(statuses, "무효", "카드 효과 무효", "이번 턴 카드 효과가 발동하지 않습니다.", COL_STATUS_DEBUFF);
+        if (p.handLockTurns > 0) addStatus(statuses, "잠금" + p.handLockTurns, "손패 잠금",
+            p.handLockTurns + "턴 동안 손패가 잠깁니다.", COL_STATUS_DEBUFF);
+        if (p.playLimit >= 0) addStatus(statuses, "제한" + p.playLimit, "카드 사용 제한",
+            "이번 턴 남은 카드 사용 횟수는 " + p.playLimit + "회입니다.", COL_STATUS_DEBUFF);
+        if (p.nextTurnPlayLimit >= 0) addStatus(statuses, "다음" + p.nextTurnPlayLimit, "다음 턴 사용 제한",
+            "다음 턴 카드 사용 횟수가 " + p.nextTurnPlayLimit + "회로 제한됩니다.", COL_STATUS_DEBUFF);
+        if (p.costIncreasedOnPlay) addStatus(statuses, "비용+", "사용 카드 비용 증가", "카드를 사용할 때마다 해당 카드 비용이 증가합니다.", COL_STATUS_DEBUFF);
+        if (p.randomTargetsThisTurn) addStatus(statuses, "무작위", "무작위 대상", "이번 턴 카드 대상이 무작위로 결정됩니다.", COL_STATUS_DEBUFF);
+        if (p.mustSpendAllCostThisTurn) addStatus(statuses, "전소", "남은 코스트 피해", "턴 종료 시 남은 코스트만큼 피해를 받습니다.", COL_STATUS_DEBUFF);
+        if (p.delayEffectsThisTurn) addStatus(statuses, "효과지연", "효과 발동 지연", "이번 턴 사용한 카드 효과가 다음 턴에 발동합니다.", COL_STATUS_DEBUFF);
+        if (p.effectFailChanceThisTurn > 0f) addStatus(statuses, "실패", "효과 실패 확률",
+            "카드 효과가 " + Math.round(p.effectFailChanceThisTurn * 100f) + "% 확률로 실패합니다.", COL_STATUS_DEBUFF);
+        if (p.healBlocked) addStatus(statuses, "회복X", "회복 봉쇄", "다음 회복 효과가 무효가 됩니다.", COL_STATUS_DEBUFF);
+        if (p.incomingDamageMultiplier > 1f) addStatus(statuses, "취약", "받는 피해 증가", "받는 피해가 증가합니다.", COL_STATUS_DEBUFF);
+        if (p.forceReversedDraw || p.forceNextDrawReversed) addStatus(statuses, "역드로", "강제 역방향 드로우",
+            "다음 드로우 카드가 역방향이 됩니다.", COL_STATUS_DEBUFF);
+
+        int reverseGrace = state.countReverseGraceCards(p);
+        if (reverseGrace > 0) addStatus(statuses, "유예" + reverseGrace, "역방향 유예",
+            "저주 피해가 유예된 역방향 카드가 " + reverseGrace + "장 있습니다.", COL_STATUS_SPECIAL);
+        int reversePenalty = state.countReversePenaltyCards(p);
+        if (reversePenalty > 0) addStatus(statuses, "저주" + reversePenalty, "역방향 저주",
+            "유예가 끝난 역방향 카드가 " + reversePenalty + "장 있습니다.", COL_STATUS_DEBUFF);
+        return statuses;
+    }
+
+    private void addSignedStatus(Array<StatusBadge> statuses, String label, String title, int value) {
+        String signed = value > 0 ? "+" + value : String.valueOf(value);
+        addStatus(statuses, label + signed, title, title + "가 " + signed + " 적용됩니다.",
+            value > 0 ? COL_STATUS_BUFF : COL_STATUS_DEBUFF);
+    }
+
+    private void addStatus(Array<StatusBadge> statuses, String label, String title,
+                           String description, Color color) {
+        statuses.add(new StatusBadge(label, title, description, color, statusIconPath(title)));
+    }
+
+    private String statusIconPath(String title) {
+        switch (title) {
+            case "추가 피해": return "Buffs/attack_boost.png";
+            case "받는 피해 감소": return "Buffs/defense_boost.png";
+            case "회복 증폭": return "Buffs/regeneration.png";
+            case "피해 반사": return "Spells/counterspell.png";
+            case "대상 지정 불가": return "Buffs/ghost_form_(physical_damage_immunity).png";
+            case "가짜 보호막": return "Spells/divine_protection_spell.png";
+            case "HP 초과 지불": return "Spells/healing_spell.png";
+            case "코스트 이월":
+            case "코스트 절반 보존":
+            case "다음 턴 시작 코스트":
+            case "다음 턴 코스트 배수":
+            case "모든 카드 코스트 0":
+            case "코스트 소진 보상": return "Spells/mana_replenish.png";
+            case "다음 턴 드로우": return "Buffs/lucky_boost.png";
+            case "사용 카드 유지": return "Buffs/negative_status_resistance.png";
+            case "지연된 효과":
+            case "효과 발동 지연": return "Spells/teleportation_spell.png";
+            case "메이저 카드 봉쇄":
+            case "드로우 봉쇄":
+            case "카드 효과 무효":
+            case "회복 봉쇄": return "Debuffs/silenced.png";
+            case "손패 잠금": return "Debuffs/stunned.png";
+            case "카드 사용 제한":
+            case "다음 턴 사용 제한": return "Debuffs/disarmed.png";
+            case "사용 카드 비용 증가": return "Debuffs/slowed.png";
+            case "무작위 대상": return "Debuffs/blinded.png";
+            case "효과 실패 확률":
+            case "카드 효과 반전": return "Debuffs/confused.png";
+            case "받는 피해 증가": return "Debuffs/defense_down.png";
+            case "강제 역방향 드로우":
+            case "역방향 저주": return "Debuffs/cursed_(disarmed+silenced).png";
+            case "역방향 유예": return "Buffs/magic_amplification.png";
+            case "남은 코스트 피해": return "Debuffs/attack_down.png";
+            default: return null;
+        }
+    }
+
+    private void drawStatusTooltipLayer() {
+        if (hoveredStatus == null) return;
+        float x = MathUtils.clamp(mouse.x + 18f, 20f, GameConfig.WORLD_W - STATUS_TOOLTIP_W - 20f);
+        float y = MathUtils.clamp(mouse.y + 22f, 20f, GameConfig.WORLD_H - STATUS_TOOLTIP_H - 20f);
+
+        shape.begin(ShapeRenderer.ShapeType.Filled);
+        shape.setColor(COL_TOOLTIP_SHADOW);
+        drawRoundedRect(x + 6f, y - 7f, STATUS_TOOLTIP_W, STATUS_TOOLTIP_H, 12f);
+        shape.setColor(COL_TOOLTIP_BG);
+        drawRoundedRect(x, y, STATUS_TOOLTIP_W, STATUS_TOOLTIP_H, 12f);
+        shape.setColor(hoveredStatus.color.r, hoveredStatus.color.g, hoveredStatus.color.b, 0.78f);
+        shape.rect(x + 14f, y + STATUS_TOOLTIP_H - 34f, STATUS_TOOLTIP_W - 28f, 1.5f);
+        shape.end();
+
+        batch.begin();
+        fonts.tooltipTitle.setColor(hoveredStatus.color);
+        fonts.tooltipTitle.draw(batch, hoveredStatus.title, x + 14f, y + STATUS_TOOLTIP_H - 12f);
+        fonts.tooltipBody.setColor(Color.WHITE);
+        drawWrappedText(hoveredStatus.description, x + 14f, y + STATUS_TOOLTIP_H - 43f,
+            STATUS_TOOLTIP_W - 28f, TOOLTIP_LINE_H, fonts.tooltipBody);
+        fonts.tooltipTitle.setColor(Color.WHITE);
+        batch.end();
+    }
+
+    private void drawTurnClock() {
+        Texture clock = assets.clock("clock");
+        Texture secondHand = assets.clock("second_hand");
+        if (clock == null || secondHand == null) return;
+
+        batch.setColor(Color.WHITE);
+        batch.draw(clock,
+            CLOCK_CENTER_X - CLOCK_SIZE / 2f,
+            CLOCK_CENTER_Y - CLOCK_SIZE / 2f,
+            CLOCK_SIZE,
+            CLOCK_SIZE);
+
+        float remaining = MathUtils.clamp(state.turnTimer, 0f, GameConfig.TURN_TIME);
+        float elapsedRatio = 1f - remaining / GameConfig.TURN_TIME;
+        float rotation = -360f * elapsedRatio;
+        batch.draw(secondHand,
+            CLOCK_CENTER_X - SECOND_HAND_W / 2f,
+            CLOCK_CENTER_Y - SECOND_HAND_PIVOT_Y,
+            SECOND_HAND_W / 2f,
+            SECOND_HAND_PIVOT_Y,
+            SECOND_HAND_W,
+            SECOND_HAND_H,
+            1f,
+            1f,
+            rotation,
+            0,
+            0,
+            secondHand.getWidth(),
+            secondHand.getHeight(),
+            false,
+            false);
     }
 
     private void drawHpBarFrames() {
@@ -1765,62 +2053,78 @@ public class MainScreen implements Screen {
 
     private void drawSelectionLayer() {
         GameState.CardSelectionRequest request = state.pendingSelection;
-        if (request == null) return;
+        if (request == null || !acceptsHumanInputThisTurn()) return;
 
         shape.begin(ShapeRenderer.ShapeType.Filled);
+        shape.setColor(0f, 0f, 0f, 0.42f);
+        shape.rect(0f, 0f, GameConfig.WORLD_W, GameConfig.WORLD_H);
         shape.setColor(COL_TOOLTIP_SHADOW);
-        drawRoundedRect(SELECTION_PANEL.x + 7f, SELECTION_PANEL.y - 8f,
-            SELECTION_PANEL.width, SELECTION_PANEL.height, 12f);
-        shape.setColor(COL_SELECTION_PANEL);
+        drawRoundedRect(SELECTION_PANEL.x + 6f, SELECTION_PANEL.y - 7f,
+            SELECTION_PANEL.width, SELECTION_PANEL.height, TOOLTIP_RADIUS);
+        shape.setColor(COL_TOOLTIP_BG.r, COL_TOOLTIP_BG.g, COL_TOOLTIP_BG.b, 0.92f);
         drawRoundedRect(SELECTION_PANEL.x, SELECTION_PANEL.y,
-            SELECTION_PANEL.width, SELECTION_PANEL.height, 12f);
+            SELECTION_PANEL.width, SELECTION_PANEL.height, TOOLTIP_RADIUS);
+        drawSelectionGradientFrame(SELECTION_PANEL, COL_SELECTION_BORDER, 0.18f, 26f);
         shape.setColor(COL_TOOLTIP_LINE);
-        shape.rect(SELECTION_PANEL.x + 16f, SELECTION_PANEL.y + 48f,
-            SELECTION_PANEL.width - 32f, 1f);
+        shape.rect(SELECTION_PANEL.x + 28f, SELECTION_PANEL.y + SELECTION_PANEL.height - 92f,
+            SELECTION_PANEL.width - 56f, 1f);
         float confirmX = SELECTION_CONFIRM.x + SELECTION_CONFIRM.width / 2f;
         float confirmY = SELECTION_CONFIRM.y + SELECTION_CONFIRM.height / 2f;
-        Color confirmColor = stagedSelectionCard == null ? COL_TOOLTIP_LINE : COL_SELECTION_SELECTED;
+        Color confirmColor = stagedSelectionCard == null ? COL_SELECTION_BORDER : COL_SELECTION_SELECTED;
         float confirmPulse = stagedSelectionCard == null ? 0f : MathUtils.sin(hudTime * 4f) * 2f;
         shape.setColor(confirmColor.r, confirmColor.g, confirmColor.b,
-            stagedSelectionCard == null ? 0.16f : 0.28f);
-        shape.circle(confirmX, confirmY, 23f + confirmPulse, 32);
-        shape.setColor(COL_SELECTION_PANEL);
-        shape.circle(confirmX, confirmY, 17f, 32);
+            stagedSelectionCard == null ? 0.16f : 0.42f);
+        shape.circle(confirmX, confirmY, 19f + confirmPulse, 32);
+        shape.setColor(COL_TOOLTIP_BG);
+        shape.circle(confirmX, confirmY, 18f + confirmPulse, 32);
         shape.setColor(confirmColor);
         shape.triangle(confirmX - 5f, confirmY - 8f,
             confirmX - 5f, confirmY + 8f, confirmX + 9f, confirmY);
 
         for (int i = 0; i < request.candidates.size; i++) {
-            if (isCardInPlayerHand(request.candidates.get(i))) continue;
             Rectangle bounds = selectionCardBounds(request.candidates.size, i);
+            Rectangle detail = selectionDetailBounds(request.candidates.size, i);
             Color cardColor = request.candidates.get(i) == stagedSelectionCard
                 ? COL_SELECTION_SELECTED
-                : bounds.contains(mouse) ? COL_SELECTION_HOVER : COL_SELECTION_BORDER;
+                : selectionSlotContains(request.candidates.size, i, mouse.x, mouse.y)
+                    ? COL_SELECTION_HOVER : COL_SELECTION_BORDER;
             float pulse = 0.45f + 0.35f * MathUtils.sin(hudTime * 3.5f + i * 0.7f);
             shape.setColor(cardColor.r, cardColor.g, cardColor.b,
-                request.candidates.get(i) == stagedSelectionCard ? 0.18f + pulse * 0.12f : 0.08f);
-            shape.rect(bounds.x - 10f, bounds.y - 10f, bounds.width + 20f, bounds.height + 20f);
-            drawCardGlowFrame(bounds, cardColor, pulse);
+                request.candidates.get(i) == stagedSelectionCard ? 0.10f + pulse * 0.05f : 0.025f);
+            shape.rect(bounds.x - 5f, bounds.y - 5f, bounds.width + 10f, bounds.height + 10f);
+            drawSelectionGradientFrame(bounds, cardColor,
+                request.candidates.get(i) == stagedSelectionCard ? 0.72f
+                    : selectionSlotContains(request.candidates.size, i, mouse.x, mouse.y) ? 0.42f : 0.16f,
+                14f);
+            shape.setColor(COL_TOOLTIP_BG.r, COL_TOOLTIP_BG.g, COL_TOOLTIP_BG.b, 0.90f);
+            drawRoundedRect(detail.x, detail.y, detail.width, detail.height, 9f);
+            drawSelectionGradientFrame(detail, cardColor,
+                request.candidates.get(i) == stagedSelectionCard ? 0.60f
+                    : selectionSlotContains(request.candidates.size, i, mouse.x, mouse.y) ? 0.34f : 0.12f,
+                14f);
         }
         shape.end();
 
         batch.begin();
         fonts.tooltipTitle.setColor(Color.WHITE);
-        fonts.tooltipTitle.draw(batch, request.title, SELECTION_PANEL.x + 16f,
-            SELECTION_PANEL.y + SELECTION_PANEL.height - 18f);
+        fonts.tooltipTitle.draw(batch, request.title, SELECTION_PANEL.x + 28f,
+            SELECTION_PANEL.y + SELECTION_PANEL.height - 28f);
         fonts.tooltipBody.setColor(COL_TOOLTIP_MUTED);
-        fonts.tooltipBody.draw(batch, request.instruction, SELECTION_PANEL.x + 16f,
-            SELECTION_PANEL.y + SELECTION_PANEL.height - 42f);
+        fonts.tooltipBody.draw(batch, request.instruction, SELECTION_PANEL.x + 28f,
+            SELECTION_PANEL.y + SELECTION_PANEL.height - 58f);
         for (int i = 0; i < request.candidates.size; i++) {
             Card card = request.candidates.get(i);
-            if (isCardInPlayerHand(card)) continue;
             Rectangle bounds = selectionCardBounds(request.candidates.size, i);
             Texture illust = assets.cardIllust(card);
             if (illust != null) {
                 batch.draw(illust, bounds.x, bounds.y, bounds.width, bounds.height,
                     0, 0, illust.getWidth(), illust.getHeight(), false, card.shouldFlipIllust());
             }
+            drawSelectionCardDetails(card, selectionDetailBounds(request.candidates.size, i));
         }
+        fonts.tooltipBody.setColor(stagedSelectionCard == null ? COL_TOOLTIP_MUTED : COL_SELECTION_SELECTED);
+        fonts.tooltipBody.draw(batch, stagedSelectionCard == null ? "카드를 선택하세요" : "선택 완료",
+            SELECTION_CONFIRM.x - 6f, SELECTION_CONFIRM.y + 28f);
         fonts.small.setColor(Color.WHITE);
         fonts.normal.setColor(Color.WHITE);
         fonts.tooltipBody.setColor(Color.WHITE);
@@ -1828,18 +2132,72 @@ public class MainScreen implements Screen {
         batch.end();
     }
 
+    private void drawSelectionGradientFrame(Rectangle bounds, Color color, float alpha, float corner) {
+        shape.setColor(color.r, color.g, color.b, alpha * 0.10f);
+        drawFrameLines(bounds.x - 3f, bounds.y - 3f, bounds.width + 6f, bounds.height + 6f, 1f);
+        shape.setColor(color.r, color.g, color.b, alpha * 0.20f);
+        drawFrameLines(bounds.x - 1.5f, bounds.y - 1.5f, bounds.width + 3f, bounds.height + 3f, 1f);
+        shape.setColor(color.r, color.g, color.b, alpha * 0.72f);
+        drawFrameCorners(bounds.x, bounds.y, bounds.width, bounds.height, corner, 1f);
+    }
+
     private Rectangle selectionCardBounds(int count, int index) {
-        float width = CardRenderer.CARD_W * SELECTION_CARD_SCALE;
-        float height = CardRenderer.CARD_H * SELECTION_CARD_SCALE;
-        float total = count * width + Math.max(0, count - 1) * SELECTION_CARD_GAP;
-        float startX = GameConfig.WORLD_W / 2f - total / 2f;
-        return new Rectangle(startX + index * (width + SELECTION_CARD_GAP),
-            SELECTION_CARDS_Y, width, height);
+        float slotWidth = selectionSlotWidth(count);
+        float scale = selectionCardScale(count);
+        float width = CardRenderer.CARD_W * scale;
+        float height = CardRenderer.CARD_H * scale;
+        float startX = GameConfig.WORLD_W / 2f - selectionTotalWidth(count) / 2f;
+        float slotX = startX + index * (slotWidth + SELECTION_CARD_GAP);
+        return new Rectangle(slotX + (slotWidth - width) / 2f, SELECTION_CARDS_Y, width, height);
+    }
+
+    private Rectangle selectionDetailBounds(int count, int index) {
+        float slotWidth = selectionSlotWidth(count);
+        float startX = GameConfig.WORLD_W / 2f - selectionTotalWidth(count) / 2f;
+        return new Rectangle(startX + index * (slotWidth + SELECTION_CARD_GAP),
+            SELECTION_CARDS_Y - SELECTION_DETAIL_H - SELECTION_DETAIL_GAP,
+            slotWidth, SELECTION_DETAIL_H);
+    }
+
+    private float selectionSlotWidth(int count) {
+        float available = SELECTION_PANEL.width - 80f - Math.max(0, count - 1) * SELECTION_CARD_GAP;
+        return Math.min(210f, available / Math.max(1, count));
+    }
+
+    private float selectionTotalWidth(int count) {
+        return count * selectionSlotWidth(count) + Math.max(0, count - 1) * SELECTION_CARD_GAP;
+    }
+
+    private float selectionCardScale(int count) {
+        return Math.min(SELECTION_CARD_SCALE, selectionSlotWidth(count) / CardRenderer.CARD_W);
+    }
+
+    private boolean selectionSlotContains(int count, int index, float x, float y) {
+        return selectionCardBounds(count, index).contains(x, y)
+            || selectionDetailBounds(count, index).contains(x, y);
+    }
+
+    private void drawSelectionCardDetails(Card card, Rectangle bounds) {
+        CardDescriptions.Entry entry = CardDescriptions.get(card.id);
+        boolean effectsSwapped = state.currentPlayer().effectsSwapped;
+        String effect = entry == null ? "효과 설명이 없습니다."
+            : CardDescriptions.currentText(card.id, card.reversed, effectsSwapped);
+        String direction = card.reversed ^ effectsSwapped ? "역방향" : "정방향";
+
+        fonts.tooltipTitle.setColor(Color.WHITE);
+        drawWrappedText(card.name, bounds.x + 10f, bounds.y + bounds.height - 14f,
+            bounds.width - 20f, 16f, fonts.tooltipTitle);
+        fonts.small.setColor(card.reversed ? COL_TOOLTIP_REVERSED : COL_TOOLTIP_ACTIVE);
+        fonts.small.draw(batch, direction + " · COST " + state.effectiveCostFor(state.currentPlayer(), card),
+            bounds.x + 10f, bounds.y + bounds.height - 48f);
+        fonts.tooltipBody.setColor(Color.WHITE);
+        drawWrappedText(effect, bounds.x + 10f, bounds.y + bounds.height - 68f,
+            bounds.width - 20f, 14f, fonts.tooltipBody);
     }
 
     private boolean handleSelectionClick(boolean left) {
         GameState.CardSelectionRequest request = state.pendingSelection;
-        if (request == null) return false;
+        if (request == null || !acceptsHumanInputThisTurn()) return false;
         if (!left) return true;
 
         if (SELECTION_CONFIRM.contains(mouse) && stagedSelectionCard != null) {
@@ -1849,17 +2207,9 @@ public class MainScreen implements Screen {
             return true;
         }
 
-        int handIndex = getHandIndexAt(state.players[0].hand, HAND0_Y, mouse.x, mouse.y);
-        if (handIndex >= 0) {
-            Card card = state.players[0].hand.get(handIndex);
-            if (isHandSelectionCandidate(card)) stagedSelectionCard = card;
-            return true;
-        }
-
         for (int i = 0; i < request.candidates.size; i++) {
             Card card = request.candidates.get(i);
-            if (isCardInPlayerHand(card)) continue;
-            if (selectionCardBounds(request.candidates.size, i).contains(mouse)) {
+            if (selectionSlotContains(request.candidates.size, i, mouse.x, mouse.y)) {
                 stagedSelectionCard = card;
                 return true;
             }
@@ -1903,28 +2253,19 @@ public class MainScreen implements Screen {
         if (hasCardAnimation()) return;
         if (!acceptsHumanInputThisTurn()) return;
 
+        Player current = state.currentPlayer();
         if (left) {
-            if (btnDraw.contains(wx, wy)) {
-                Player current = state.currentPlayer();
-                if (current.stagedCards.size > 0) {
-                    state.resolveStagedCards(current);
-                } else {
-                    debugDrawCurrentCard();
-                }
+            if (current.stagedCards.size > 0 && btnDraw.contains(wx, wy)) {
+                state.resolveStagedCards(current);
                 return;
             }
             if (btnPhase.contains(wx, wy)) {
                 advanceTurnPhase();
                 return;
             }
-            if (btnDebug.contains(wx, wy)) {
-                damageOpponent(25);
-                return;
-            }
         }
 
         // 카드 클릭
-        Player current = state.currentPlayer();
         int stagedIndex = stagedCardIndexAt(current, wx, wy);
         if (left && stagedIndex >= 0) {
             state.unstageCard(current, stagedIndex);

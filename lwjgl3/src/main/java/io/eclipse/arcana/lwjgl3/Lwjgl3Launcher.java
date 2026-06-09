@@ -9,9 +9,6 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3WindowConfiguration;
 import com.badlogic.gdx.graphics.glutils.HdpiMode;
 
 import java.io.File;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Proxy;
-
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
     private static final float WINDOW_SCALE = 0.8f;
@@ -21,7 +18,6 @@ public class Lwjgl3Launcher {
     private static final float DEBUG_WINDOW_SCALE = 1.12f;
 
     public static void main(String[] args) {
-        if (StartupHelper.startNewJvmIfRequired()) return; // This handles macOS support and helps on Windows.
         useAssetsAsWorkingDirectory();
         createApplication();
     }
@@ -32,20 +28,8 @@ public class Lwjgl3Launcher {
 
     private static com.badlogic.gdx.ApplicationListener createCoreApplication() {
         try {
-            Class<?> openerType = Class.forName("io.eclipse.arcana.DebugWindowOpener");
-            Object opener = Proxy.newProxyInstance(
-                Lwjgl3Launcher.class.getClassLoader(),
-                new Class<?>[] { openerType },
-                (proxy, method, args) -> {
-                    if ("open".equals(method.getName()) && args != null && args.length == 1) {
-                        openDebugWindow(args[0]);
-                    }
-                    return null;
-                });
-
             Class<?> coreType = Class.forName("io.eclipse.arcana.Core");
-            Constructor<?> constructor = coreType.getConstructor(openerType);
-            return (com.badlogic.gdx.ApplicationListener) constructor.newInstance(opener);
+            return (com.badlogic.gdx.ApplicationListener) coreType.getConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("Failed to create Arcana core application.", e);
         }

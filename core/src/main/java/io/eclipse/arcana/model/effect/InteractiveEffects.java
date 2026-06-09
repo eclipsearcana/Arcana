@@ -12,9 +12,10 @@ public final class InteractiveEffects {
     public static class Fool extends BaseCardEffect {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
+            if (caster.hand.size >= io.eclipse.arcana.GameConfig.HAND_MAX) return;
             state.requestCardSelection("The Fool", "복제할 손패 카드 1장을 선택하세요.",
-                chooseUpToThree(caster.hand), 1, selected -> {
-                    if (selected.size == 0) return;
+                copy(caster.hand), 1, selected -> {
+                    if (selected.size == 0 || caster.hand.size >= io.eclipse.arcana.GameConfig.HAND_MAX) return;
                     Card original = selected.first();
                     Card clone = original.copy();
                     clone.ownerIndex = state.playerIndex(caster);
@@ -36,21 +37,21 @@ public final class InteractiveEffects {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
             state.requestCardSelection("The Magician", "계약할 손패 카드 1장을 선택하세요.",
-                chooseUpToThree(caster.hand), 1, selected -> {
+                copy(caster.hand), 1, selected -> {
                     if (selected.size == 0) return;
                     Card card = selected.first();
-                    card.turnCostModifier = -card.cost;
+                    card.costModifier = -card.cost;
                     card.powerMultiplier = 2f;
-                    card.powerMultiplierExpiresEndOfTurn = true;
                     card.effectMark = Card.EffectMark.POSITIVE;
                 });
         }
 
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
+            if (caster.hand.size >= io.eclipse.arcana.GameConfig.HAND_MAX) return;
             state.requestCardSelection("The Magician Reversed", "환영으로 복제할 카드 1장을 선택하세요.",
-                chooseUpToThree(caster.hand), 1, selected -> {
-                    if (selected.size == 0) return;
+                copy(caster.hand), 1, selected -> {
+                    if (selected.size == 0 || caster.hand.size >= io.eclipse.arcana.GameConfig.HAND_MAX) return;
                     Card illusion = selected.first().copy();
                     illusion.ownerIndex = state.playerIndex(caster);
                     illusion.isIllusion = true;
@@ -95,10 +96,10 @@ public final class InteractiveEffects {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
             state.requestCardSelection("The Lovers", "0 코스트로 만들 내 카드 1장을 선택하세요.",
-                chooseUpToThree(caster.hand), 1, ownSelected -> {
+                copy(caster.hand), 1, ownSelected -> {
                     markCostZero(ownSelected);
                     state.requestCardSelection("The Lovers", "0 코스트로 만들 상대 카드 1장을 선택하세요.",
-                        chooseUpToThree(target.hand), 1, targetSelected -> markCostZero(targetSelected));
+                        copy(target.hand), 1, targetSelected -> markCostZero(targetSelected));
                 });
         }
 
@@ -133,7 +134,7 @@ public final class InteractiveEffects {
         @Override
         public void executeReversed(GameState state, Player caster, Player target) {
             state.requestCardSelection("The Hanged Man Reversed", "이번 턴 손패에 묶을 카드 1장을 선택하세요.",
-                chooseUpToThree(caster.hand), 1, selected -> {
+                copy(caster.hand), 1, selected -> {
                     if (selected.size == 0) return;
                     Card card = selected.first();
                     card.lockedInHand = true;
@@ -163,7 +164,7 @@ public final class InteractiveEffects {
             while (target.hand.size > desired) state.discardRandomCard(target);
             while (target.hand.size < desired) {
                 int before = target.hand.size;
-                state.drawCard(target);
+                state.drawCardIgnoringLocks(target);
                 if (target.hand.size == before) break;
             }
         }
@@ -181,7 +182,7 @@ public final class InteractiveEffects {
             for (Card card : target.hand) card.isRevealed = true;
             if (caster.hand.size >= io.eclipse.arcana.GameConfig.HAND_MAX) return;
             state.requestCardSelection("The World", "가져올 상대 카드 1장을 선택하세요.",
-                chooseUpToThree(target.hand), 1, selected -> {
+                copy(target.hand), 1, selected -> {
                     if (selected.size == 0) return;
                     Card chosen = selected.first();
                     int index = identityIndex(target.hand, chosen);
@@ -207,14 +208,13 @@ public final class InteractiveEffects {
             while (choices.size > 2) choices.pop();
             for (Card card : choices) card.isRevealed = true;
 
-            state.requestCardSelection("Knight of Swords", "소멸시킬 공개 카드 1장을 선택하세요.",
+            state.requestCardSelection("Knight of Swords", "버릴 공개 카드 1장을 선택하세요.",
                 choices, 1, selected -> {
                     if (selected.size == 0) return;
                     Card chosen = selected.first();
                     int index = identityIndex(target.hand, chosen);
                     if (index >= 0) {
-                        target.hand.removeIndex(index);
-                        target.removedCards.add(chosen);
+                        state.discardCardFromHand(target, chosen);
                     }
                 });
         }

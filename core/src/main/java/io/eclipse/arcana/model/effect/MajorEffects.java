@@ -12,7 +12,7 @@ public class MajorEffects {
     public static class Fool extends BaseCardEffect {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
-            if (caster.hand.size > 0) {
+            if (caster.hand.size > 0 && caster.hand.size < GameConfig.HAND_MAX) {
                 Random rand = new Random();
                 int idx = rand.nextInt(caster.hand.size);
                 Card original = caster.hand.get(idx);
@@ -41,7 +41,7 @@ public class MajorEffects {
     public static class Magician extends BaseCardEffect {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
-            if (caster.hand.size > 0) {
+            if (caster.hand.size > 0 && caster.hand.size < GameConfig.HAND_MAX) {
                 Card targetCard = caster.hand.get(new java.util.Random().nextInt(caster.hand.size));
 
                 targetCard.costModifier = -targetCard.cost;
@@ -391,11 +391,9 @@ public class MajorEffects {
     public static class Moon extends BaseCardEffect {
         @Override
         public void executeUpright(GameState state, Player caster, Player target) {
-            hideHand(caster);
             hideHand(target);
-            forceRandomCard(state, caster);
             forceRandomCard(state, target);
-            state.log("[달] 양쪽 손패 은폐, 랜덤 1장 강제 사용");
+            state.log("[달] 상대 손패 은폐, 상대 랜덤 1장 강제 사용");
         }
 
         @Override

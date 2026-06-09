@@ -74,6 +74,7 @@ public class ArcanaAssets {
         queueTexture("ui/CostUI.png");
         queueTexture("ui/clock/clock.png");
         queueTexture("ui/clock/second_hand.png");
+        queueStatusIcons();
         for (Suit suit : SUITS) {
             queueTexture("ui/rune/" + suit.name().toLowerCase() + "_masked.png");
         }
@@ -141,6 +142,36 @@ public class ArcanaAssets {
         if (fileExists(path) && !manager.isLoaded(path)) {
             manager.load(path, Texture.class);
         }
+    }
+
+    private void queueStatusIcons() {
+        String root = "[VerArc Stash] Basic_Skills_and_Buffs/";
+        String[] paths = {
+            "Buffs/attack_boost.png",
+            "Buffs/defense_boost.png",
+            "Buffs/ghost_form_(physical_damage_immunity).png",
+            "Buffs/lucky_boost.png",
+            "Buffs/magic_amplification.png",
+            "Buffs/negative_status_resistance.png",
+            "Buffs/regeneration.png",
+            "Buffs/swiftness.png",
+            "Debuffs/attack_down.png",
+            "Debuffs/blinded.png",
+            "Debuffs/confused.png",
+            "Debuffs/cursed_(disarmed+silenced).png",
+            "Debuffs/defense_down.png",
+            "Debuffs/disarmed.png",
+            "Debuffs/paralyzed.png",
+            "Debuffs/silenced.png",
+            "Debuffs/slowed.png",
+            "Debuffs/stunned.png",
+            "Spells/counterspell.png",
+            "Spells/divine_protection_spell.png",
+            "Spells/healing_spell.png",
+            "Spells/mana_replenish.png",
+            "Spells/teleportation_spell.png"
+        };
+        for (String path : paths) queueTexture(root + path);
     }
 
     public float update() {
@@ -259,6 +290,15 @@ public class ArcanaAssets {
     public Texture clock(String name) {
         String path = "ui/clock/" + name + ".png";
         return manager.isLoaded(path) ? manager.get(path, Texture.class) : null;
+    }
+
+    public Texture statusIcon(String path) {
+        if (path == null) return null;
+        String fullPath = "[VerArc Stash] Basic_Skills_and_Buffs/" + path;
+        if (!manager.isLoaded(fullPath)) return null;
+        Texture texture = manager.get(fullPath, Texture.class);
+        texture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        return texture;
     }
 
     public Texture rune(Suit suit) {

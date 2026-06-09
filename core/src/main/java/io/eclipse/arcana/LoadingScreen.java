@@ -132,6 +132,7 @@ public class LoadingScreen implements Screen {
             && loadingBar.getDisplayedProgress() >= 0.999f) {
             loaded = true;
             setupMenuBounds();
+            game.startBackgroundMusic();
         }
 
         updateFade(delta);
