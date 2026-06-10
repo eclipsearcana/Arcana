@@ -28,7 +28,6 @@ public class MinorDeckSelectScreen implements Screen {
     private static final float HOVER_SCALE = 1.045f;
     private static final float TRANSITION_SPEED = 1.8f;
 
-    // Matches the order drawn in choose/background_choose.png.
     private static final Suit[] SUITS = {
         Suit.WANDS, Suit.SWORDS, Suit.PENTACLES, Suit.CUPS
     };
@@ -91,7 +90,7 @@ public class MinorDeckSelectScreen implements Screen {
         Texture texture = assets.chooseTexture(name);
         if (texture == null) {
             throw new com.badlogic.gdx.utils.GdxRuntimeException(
-                "Choose screen asset was not loaded: choose/" + name + ".png");
+                "덱 선택 배경 이미지가 로드되지 않았습니다! 경로: choose/" + name + ".png");
         }
         texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         return texture;
@@ -187,7 +186,6 @@ public class MinorDeckSelectScreen implements Screen {
 
             Texture texture = (angle < 90f) ? illustrationsBack[i] : illustrations[i];
 
-            // 1) Draw 3D shadow (black tinted texture offset to bottom-right)
             float shadowOffset = (6f + 10f * hover) * scale;
             batch.setColor(0f, 0f, 0f, 0.35f * fadeAlpha);
             batch.draw(
@@ -196,7 +194,6 @@ public class MinorDeckSelectScreen implements Screen {
                 drawW, drawH
             );
 
-            // 2) Draw card front/back with hover tint
             float muted = 0.28f + hover * 0.72f;
             float blue = 0.34f + hover * 0.66f;
             batch.setColor(muted, muted, blue, fadeAlpha);
@@ -206,24 +203,22 @@ public class MinorDeckSelectScreen implements Screen {
                 drawW, drawH
             );
 
-            // 3) Draw suit label below the card (centered in the bottom space)
             Texture label = suitLabels[i];
             float lblH = 60f;
-            float lblW = lblH * 3f; // 3:1 aspect ratio
+            float lblW = lblH * 3f;
             float lblX = CARD_CENTERS[i] - lblW / 2f;
-            float lblY = 115f; // shifted up slightly to make room for features
+            float lblY = 115f;
             batch.draw(
                 label,
                 lblX, lblY,
                 lblW, lblH
             );
 
-            // 4) Draw features description under each card (small, centered in the bottom space)
             Texture feat = features[i];
             float featW = 280f;
-            float featH = featW * 220f / 1600f; // 1600x220 aspect ratio
+            float featH = featW * 220f / 1600f;
             float featX = CARD_CENTERS[i] - featW / 2f;
-            float featY = 65f; // centered between Y=54 and Y=115
+            float featY = 65f;
             batch.draw(
                 feat,
                 featX, featY,

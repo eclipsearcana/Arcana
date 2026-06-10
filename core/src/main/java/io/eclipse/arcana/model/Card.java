@@ -15,7 +15,6 @@ public class Card {
     public final int reversedCost;
     public final boolean isExtinction;
 
-    // The player whose deck this physical card belongs to. Hand swaps and steals do not change it.
     public int ownerIndex = -1;
 
     public boolean isRevealed = false;

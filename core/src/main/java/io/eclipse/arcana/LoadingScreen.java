@@ -132,11 +132,10 @@ public class LoadingScreen implements Screen {
             && loadingBar.getDisplayedProgress() >= 0.999f) {
             loaded = true;
             setupMenuBounds();
-            game.startBackgroundMusic();
         }
 
         updateFade(delta);
-        handleInput(delta);
+        handleInput();
 
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -190,7 +189,7 @@ public class LoadingScreen implements Screen {
         }
     }
 
-    private void handleInput(float delta) {
+    private void handleInput() {
         if (!loaded || transitioning || menuAlpha < 0.95f || !Gdx.input.justTouched()) {
             return;
         }

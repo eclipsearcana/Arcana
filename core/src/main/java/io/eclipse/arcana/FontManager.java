@@ -81,7 +81,7 @@ public class FontManager implements Disposable {
         }
 
         throw new com.badlogic.gdx.utils.GdxRuntimeException(
-            "Missing Korean font in assets/fonts. Tried Nanum Square Neo and Nanum Square Round.");
+            "나눔스퀘어 네오와 나눔스퀘어 라운드 폰트를 에셋 파일에서 찾을 수 없습니다!");
     }
 
     private BitmapFont make(int px) {
@@ -113,7 +113,7 @@ public class FontManager implements Disposable {
         if (statFont != null) {
             statFont.dispose();
         }
-        generator.dispose();  // incremental 폰트는 generator보다 먼저 dispose
+        generator.dispose();
         if (statGenerator != null) {
             statGenerator.dispose();
         }

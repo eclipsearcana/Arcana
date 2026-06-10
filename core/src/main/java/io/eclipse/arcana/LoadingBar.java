@@ -1,6 +1,5 @@
 package io.eclipse.arcana;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -31,7 +30,6 @@ public class LoadingBar extends Actor {
     private final Texture edgeGlowTexture;
     private final TextureRegion fillRegion;
 
-    // Gradient & Particle visual effects
     private final Texture whiteTexture;
     private final Texture starTexture;
     private final Sprite gradientSprite;
@@ -64,11 +62,9 @@ public class LoadingBar extends Actor {
         frameTexture = loadTexture(FRAME_PATH);
         edgeGlowTexture = loadTexture(EDGE_GLOW_PATH);
         fillRegion = new TextureRegion(fillTexture);
-        
-        // Load star texture from TitleA (menu star)
+
         starTexture = loadTexture("TitleA/starA.png");
 
-        // Create 1x1 white texture for custom gradient rendering
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
         pixmap.setColor(1f, 1f, 1f, 1f);
         pixmap.fill();
@@ -91,37 +87,16 @@ public class LoadingBar extends Actor {
         if (!smoothProgress) displayedProgress = progress;
     }
 
-    public float getProgress() {
-        return progress;
-    }
-
     public float getDisplayedProgress() {
         return displayedProgress;
-    }
-
-    public void setSmoothProgress(boolean enabled) {
-        smoothProgress = enabled;
-        if (!enabled) displayedProgress = progress;
-    }
-
-    public boolean isSmoothProgress() {
-        return smoothProgress;
     }
 
     public void setSmoothingSpeed(float speed) {
         smoothingSpeed = Math.max(0f, speed);
     }
 
-    public float getSmoothingSpeed() {
-        return smoothingSpeed;
-    }
-
     public void setDrawEdgeGlow(boolean enabled) {
         drawEdgeGlow = enabled;
-    }
-
-    public boolean isDrawEdgeGlow() {
-        return drawEdgeGlow;
     }
 
     @Override
@@ -141,7 +116,6 @@ public class LoadingBar extends Actor {
 
         stateTime += delta;
 
-        // Update active particles
         float currentFillW = SLOT_W * displayedProgress;
         for (int i = particles.size - 1; i >= 0; i--) {
             StarParticle p = particles.get(i);
@@ -150,7 +124,7 @@ public class LoadingBar extends Actor {
             p.rotation += p.spinSpeed * delta;
 
             if (p.x > currentFillW) {
-                p.life -= delta * 4f; // accelerate fade-out when past the edge
+                p.life -= delta * 4f;
             } else {
                 p.life -= delta;
             }
@@ -160,21 +134,19 @@ public class LoadingBar extends Actor {
             }
         }
 
-        // Spawn new particles inside the active fill bar region
         if (currentFillW > 5f && !disposed) {
             particleTimer += delta;
-            float spawnInterval = 0.04f; // spawn a particle every 40ms
+            float spawnInterval = 0.04f;
             while (particleTimer >= spawnInterval) {
                 particleTimer -= spawnInterval;
                 if (particles.size < 60) {
                     StarParticle p = new StarParticle();
-                    // Spawn: 30% near leading edge for spark effect, 70% randomly distributed
                     if (MathUtils.randomBoolean(0.3f)) {
                         p.x = MathUtils.random(Math.max(0f, currentFillW - 80f), currentFillW);
-                        p.vx = MathUtils.random(20f, 60f); // drift slowly with the front edge
+                        p.vx = MathUtils.random(20f, 60f);
                     } else {
                         p.x = MathUtils.random(0f, currentFillW);
-                        p.vx = MathUtils.random(60f, 150f); // flow quickly to the right
+                        p.vx = MathUtils.random(60f, 150f);
                     }
 
                     p.y = MathUtils.random(8f, SLOT_H - 8f);
@@ -206,12 +178,10 @@ public class LoadingBar extends Actor {
         float scaleX = width / SRC_W;
         float scaleY = height / SRC_H;
 
-        // 1) Background track
         batch.draw(trackTexture, x, y, width, height);
 
         int visibleSrcW = Math.round(SLOT_W * displayedProgress);
         if (visibleSrcW > 0) {
-            // 2) Base fill bar
             fillRegion.setRegion(SLOT_X, SLOT_Y_FROM_TOP, visibleSrcW, SLOT_H);
 
             float slotLocalX = SLOT_X * scaleX;
@@ -222,12 +192,10 @@ public class LoadingBar extends Actor {
 
             batch.draw(fillRegion, x + slotLocalX, y + slotLocalY, visibleLocalW, slotLocalH);
 
-            // 3) Gradient Overlay & Particles (Additive Blending)
             int srcFunc = batch.getBlendSrcFunc();
             int destFunc = batch.getBlendDstFunc();
-            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE); // Additive blending
+            batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
 
-            // Animated gradient: Purple (left) to Gold (right), shifting alpha over time
             float pulse = (float) Math.sin(stateTime * 3.5f) * 0.08f + 0.92f;
             Color purple = new Color(0.45f, 0.08f, 0.75f, 0.5f * pulse);
             Color gold = new Color(0.95f, 0.78f, 0.18f, 0.65f * pulse);
@@ -235,7 +203,6 @@ public class LoadingBar extends Actor {
             drawGradientRect(batch, x + slotLocalX, y + slotLocalY, visibleLocalW, slotLocalH,
                 purple, purple, gold, gold);
 
-            // Flowing star particles
             for (StarParticle p : particles) {
                 float ratio = p.life / p.maxLife;
                 float pAlpha = ratio < 0.2f ? (ratio / 0.2f) : (ratio > 0.8f ? (1f - ratio) / 0.2f : 1f);
@@ -262,11 +229,9 @@ public class LoadingBar extends Actor {
                 }
             }
 
-            // Restore batch blend function and color
             batch.setBlendFunction(srcFunc, destFunc);
             batch.setColor(getColor().r, getColor().g, getColor().b, alpha);
 
-            // 4) Front Edge Glow (only if enabled)
             if (drawEdgeGlow) {
                 float glowW = edgeGlowTexture.getWidth() * scaleX;
                 float glowH = edgeGlowTexture.getHeight() * scaleY;
@@ -286,7 +251,6 @@ public class LoadingBar extends Actor {
             }
         }
 
-        // 5) Frame overlay always on top
         batch.draw(frameTexture, x, y, width, height);
         batch.setColor(oldR, oldG, oldB, oldA);
     }
@@ -295,10 +259,10 @@ public class LoadingBar extends Actor {
                                   Color c1, Color c2, Color c3, Color c4) {
         gradientSprite.setBounds(x, y, width, height);
         float[] vertices = gradientSprite.getVertices();
-        vertices[2] = c1.toFloatBits();  // bottom left
-        vertices[7] = c2.toFloatBits();  // top left
-        vertices[12] = c3.toFloatBits(); // top right
-        vertices[17] = c4.toFloatBits(); // bottom right
+        vertices[2] = c1.toFloatBits();
+        vertices[7] = c2.toFloatBits();
+        vertices[12] = c3.toFloatBits();
+        vertices[17] = c4.toFloatBits();
         gradientSprite.draw(batch);
     }
 

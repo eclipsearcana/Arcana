@@ -3,6 +3,7 @@ package io.eclipse.arcana.model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 import com.badlogic.gdx.utils.Array;
 import io.eclipse.arcana.GameConfig;
@@ -62,7 +63,7 @@ public class GameState {
     public GamePhase phase = GamePhase.DRAFT;
     public TurnPhase turnPhase = TurnPhase.DRAW;
     public float turnTimer = GameConfig.TURN_TIME;
-    public int winnerIndex = -1; // -1 = 승자 없음
+    public int winnerIndex = -1; // -1: 우승 X
 
     public int roundCount = 0;
     private final List<String> debugLog = new ArrayList<>();
@@ -83,6 +84,7 @@ public class GameState {
         setupTest(suit, playerDraftMajors, opponentDraftMajors);
     }
 
+    /** Synchronized 부분 */
     public synchronized void log(String message) {
         String entry = String.format(Locale.ROOT, "%03d | R%d P%d %s | %s",
             debugLog.size() + 1,
@@ -101,6 +103,7 @@ public class GameState {
     public synchronized void clearDebugLog() {
         debugLog.clear();
     }
+    /** == */
 
     public static GameState activeLogState() {
         return ACTIVE_LOG_STATE.get();
@@ -151,8 +154,8 @@ public class GameState {
         return drawCard(player, false);
     }
 
-    public Card drawCardIgnoringLocks(Player player) {
-        return drawCard(player, true);
+    public void drawCardIgnoringLocks(Player player) {
+        drawCard(player, true);
     }
 
     private Card drawCard(Player player, boolean ignoreLocks) {
@@ -358,12 +361,12 @@ public class GameState {
         return player.allCardsCostZeroThisTurn ? 0 : card.effectiveCost();
     }
 
-    public Card playCardFromHand(Player player, int handIndex) {
-        return playCardFromHand(player, handIndex, false);
+    public void playCardFromHand(Player player, int handIndex) {
+        playCardFromHand(player, handIndex, false);
     }
 
-    public Card forcePlayCardFromHand(Player player, int handIndex) {
-        return playCardFromHand(player, handIndex, true);
+    public void forcePlayCardFromHand(Player player, int handIndex) {
+        playCardFromHand(player, handIndex, true);
     }
 
     public int stagedCost(Player player) {
@@ -372,29 +375,27 @@ public class GameState {
         return total;
     }
 
-    public boolean stageCardFromHand(Player player, int handIndex) {
-        if (pendingSelection != null || resolvingStagedPlayer != null) return false;
-        if (phase != GamePhase.MAIN || turnPhase != TurnPhase.ACTION || player != currentPlayer()) return false;
-        if (handIndex < 0 || handIndex >= player.hand.size) return false;
+    public void stageCardFromHand(Player player, int handIndex) {
+        if (pendingSelection != null || resolvingStagedPlayer != null) return;
+        if (phase != GamePhase.MAIN || turnPhase != TurnPhase.ACTION || player != currentPlayer()) return;
+        if (handIndex < 0 || handIndex >= player.hand.size) return;
 
         Card card = player.hand.get(handIndex);
-        if (card.lockedInHand || (player.majorBlocked && card.type == Card.ArcanaType.MAJOR)) return false;
+        if (card.lockedInHand || (player.majorBlocked && card.type == Card.ArcanaType.MAJOR)) return;
         if (player.playLimit == 0
-            || (player.playLimit > 0 && player.stagedCards.size >= player.playLimit)) return false;
+            || (player.playLimit > 0 && player.stagedCards.size >= player.playLimit)) return;
         if (!GameConfig.DEV_NO_COST_LIMIT
             && !player.canOverpayCostWithHpThisTurn
-            && stagedCost(player) + effectiveCostFor(player, card) > player.cost) return false;
+            && stagedCost(player) + effectiveCostFor(player, card) > player.cost) return;
 
         player.hand.removeIndex(handIndex);
         player.stagedCards.add(card);
-        return true;
     }
 
-    public boolean unstageCard(Player player, int stagedIndex) {
-        if (pendingSelection != null || resolvingStagedPlayer != null) return false;
-        if (stagedIndex < 0 || stagedIndex >= player.stagedCards.size) return false;
+    public void unstageCard(Player player, int stagedIndex) {
+        if (pendingSelection != null || resolvingStagedPlayer != null) return;
+        if (stagedIndex < 0 || stagedIndex >= player.stagedCards.size) return;
         player.hand.add(player.stagedCards.removeIndex(stagedIndex));
-        return true;
     }
 
     public void unstageAll(Player player) {
@@ -424,20 +425,20 @@ public class GameState {
         }
     }
 
-    private Card playCardFromHand(Player player, int handIndex, boolean forced) {
-        if (handIndex < 0 || handIndex >= player.hand.size) return null;
+    private void playCardFromHand(Player player, int handIndex, boolean forced) {
+        if (handIndex < 0 || handIndex >= player.hand.size) return;
 
         Card card = player.hand.get(handIndex);
-        if (card.lockedInHand) return null;
+        if (card.lockedInHand) return;
         int paidCost = forced ? 0 : effectiveCostFor(player, card);
 
         if (!forced) {
-            if (phase != GamePhase.MAIN || turnPhase != TurnPhase.ACTION) return null;
-            if (player != currentPlayer()) return null;
-            if (player.playLimit == 0) return null;
-            if (player.majorBlocked && card.type == Card.ArcanaType.MAJOR) return null;
+            if (phase != GamePhase.MAIN || turnPhase != TurnPhase.ACTION) return;
+            if (player != currentPlayer()) return;
+            if (player.playLimit == 0) return;
+            if (player.majorBlocked && card.type == Card.ArcanaType.MAJOR) return;
             if (!GameConfig.DEV_NO_COST_LIMIT && !player.canOverpayCostWithHpThisTurn && player.cost < paidCost) {
-                return null;
+                return;
             }
 
             if (player.canOverpayCostWithHpThisTurn && paidCost > player.cost) {
@@ -505,14 +506,13 @@ public class GameState {
         }
 
         if (player.costIncreasedOnPlay) {
-            int increase = new java.util.Random().nextInt(2) + 1;
+            int increase = new Random().nextInt(2) + 1;
             card.costModifier += increase;
         }
 
         if (!forced && player.playLimit > 0) player.playLimit--;
         if (!forced) applyPostPlayTriggers(player);
         checkWinCondition();
-        return card;
     }
 
     private boolean isBorrowedMinor(Player player, Card card) {
@@ -528,7 +528,7 @@ public class GameState {
         Player owner = players[card.ownerIndex];
         owner.deck.add(card);
         owner.deck.shuffle();
-        log("[CARD RETURN] " + card.name + " -> " + playerLabel(owner) + " deck");
+        log("[카드 회수] " + card.name + " -> " + playerLabel(owner) + " 덱");
     }
 
     private void applyPostPlayTriggers(Player player) {
@@ -972,8 +972,6 @@ public class GameState {
                 }
 
                 currentPlayerIndex = 1 - currentPlayerIndex;
-
-                Player next = currentPlayer();
 
                 roundCount++;
                 turnPhase = TurnPhase.DRAW;

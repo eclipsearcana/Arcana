@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -63,19 +64,17 @@ public class MainScreen implements Screen {
     private static final float BURIAL_SPEED = 2.4f;
 
     // 버튼
-    private static final float BTN_W = GameConfig.BTN_W;
     private static final float BTN_H = GameConfig.BTN_H;
-    private static final float BTN_X = GameConfig.BTN_X;
 
-    private Card drawingCard    = null;
+    private Card drawingCard = null;
     private int drawingOwnerIndex = -1;
-    private float drawProgress   = 0f;
+    private float drawProgress = 0f;
     private float drawStartX, drawStartY;
     private float drawEndX, drawEndY;
 
+    // 버튼 및 레이아웃 UI 선정
     private static final Color COL_BTN_NORMAL = new Color(0.15f, 0.15f, 0.25f, 1f);
-    private static final Color COL_BTN_DANGER = new Color(0.25f, 0.08f, 0.08f, 1f);
-    private static final Color COL_BTN_OK     = new Color(0.10f, 0.30f, 0.10f, 1f);
+    private static final Color COL_BTN_OK = new Color(0.10f, 0.30f, 0.10f, 1f);
     private static final Color COL_BTN_BORDER = new Color(0.7f,  0.6f,  0.2f,  1f);
     private static final Color COL_GRAVE_SHADOW = new Color(0.005f, 0.008f, 0.025f, 0.58f);
     private static final Color COL_GRAVE_PLATE = new Color(0.025f, 0.035f, 0.10f, 0.78f);
@@ -84,7 +83,6 @@ public class MainScreen implements Screen {
     private static final Color COL_GRAVE_GOLD_DIM = new Color(0.35f, 0.27f, 0.16f, 0.40f);
     private static final Color COL_GRAVE_STAR = new Color(0.60f, 0.48f, 0.27f, 0.70f);
     private static final Color COL_GRAVE_SLOT = new Color(0.01f, 0.015f, 0.05f, 0.76f);
-    private static final Color COL_HP_FRAME = new Color(0.55f, 0.43f, 0.25f, 0.92f);
     private static final Color COL_HP_BAR_BG = new Color(0.025f, 0.018f, 0.065f, 0.96f);
     private static final Color COL_HP_BAR_TRAIL = new Color(0.82f, 0.30f, 0.95f, 0.42f);
     private static final Color COL_HP_BAR_FILL = new Color(0.48f, 0.12f, 0.88f, 1f);
@@ -99,7 +97,6 @@ public class MainScreen implements Screen {
     private static final Color COL_TOOLTIP_MUTED = new Color(0.67f, 0.68f, 0.72f, 1f);
     private static final Color COL_TOOLTIP_ACTIVE = new Color(1f, 0.83f, 0.35f, 1f);
     private static final Color COL_TOOLTIP_REVERSED = new Color(0.93f, 0.58f, 0.68f, 1f);
-    private static final Color COL_SELECTION_PANEL = new Color(0.035f, 0.04f, 0.075f, 0.98f);
     private static final Color COL_SELECTION_BORDER = new Color(0.34f, 0.30f, 0.46f, 1f);
     private static final Color COL_SELECTION_HOVER = new Color(0.22f, 0.86f, 1f, 1f);
     private static final Color COL_SELECTION_SELECTED = new Color(0.30f, 0.95f, 0.58f, 1f);
@@ -124,8 +121,7 @@ public class MainScreen implements Screen {
     private static final float HP_PANEL_H = HP_PANEL_W * 793f / 1983f;
     private static final float HP_PANEL_Y_OFFSET = -80f;
     private static final float RUNE_CENTER_X = HP_PANEL_X + HP_PANEL_W * (294f / 1983f);
-    private static final float RUNE_CENTER_Y_OFFSET = HP_PANEL_Y_OFFSET
-        + HP_PANEL_H * ((793f - 382f) / 793f);
+    private static final float RUNE_CENTER_Y_OFFSET = HP_PANEL_Y_OFFSET + HP_PANEL_H * ((793f - 382f) / 793f);
     private static final float RUNE_SIZE = 84f;
     private static final float HP_FRAME_X = 156f;
     private static final float HP_FRAME_W = 296f;
@@ -156,7 +152,7 @@ public class MainScreen implements Screen {
         1119f / 2041f, 1316f / 2041f, 1513f / 2041f, 1709f / 2041f, 1906f / 2041f
     };
 
-    // DEBUG PANEL
+    // TODO: 디버깅 패널
     private static final float PANEL_X     = 1390f;
     private static final float PANEL_Y     = 380f;
     private static final float PANEL_W     = 180f;
@@ -168,8 +164,8 @@ public class MainScreen implements Screen {
     private static final float TOOLTIP_TAIL_W = 16f;
     private static final float TOOLTIP_TAIL_H = 11f;
 
-    private final Rectangle btnDraw    = new Rectangle(PANEL_X + 5f, PANEL_Y - 50f,  PANEL_W - 10f, BTN_H);
-    private final Rectangle btnPhase   = new Rectangle(PANEL_X + 5f, PANEL_Y - 95f,  PANEL_W - 10f, BTN_H);
+    private final Rectangle btnDraw = new Rectangle(PANEL_X + 5f, PANEL_Y - 50f,  PANEL_W - 10f, BTN_H);
+    private final Rectangle btnPhase = new Rectangle(PANEL_X + 5f, PANEL_Y - 95f,  PANEL_W - 10f, BTN_H);
     private final Rectangle btnRestart = new Rectangle(PANEL_X + 5f, PANEL_Y - 185f, PANEL_W - 10f, BTN_H);
     private static final float STAGED_CARD_SCALE = 0.44f;
     private static final float STAGED_CARD_GAP = 12f;
@@ -183,20 +179,20 @@ public class MainScreen implements Screen {
     private final Array<Card> playerDraftMajors;
     private final Array<Card> opponentDraftMajors;
 
-    private SpriteBatch   batch;
+    private SpriteBatch batch;
     private ShapeRenderer shape;
     private OrthographicCamera camera;
-    private FitViewport   viewport;
-    private FontManager   fonts;
-    private ArcanaAssets  assets;  // ← 추가
+    private FitViewport viewport;
+    private FontManager fonts;
+    private ArcanaAssets assets;
 
     private GameState state;
-    // P0/P1을 각각 컨트롤러 슬롯으로 관리합니다.
-    // 현재는 P0 = Human, P1 = AI이며, 이후 Remote 컨트롤러를 같은 배열에 꽂을 수 있습니다.
+
     private final PlayerController[] playerControllers = {
-        new HumanPlayerController(0),
-        new SimpleAiOpponent(1)
+        new HumanPlayerController(0), // 나
+        new SimpleAiOpponent(1) // 상대
     };
+
     private final PlayerController.Actions controllerActions = new PlayerController.Actions() {
         @Override
         public boolean hasCardAnimation() {
@@ -208,7 +204,6 @@ public class MainScreen implements Screen {
             MainScreen.this.advanceTurnPhase();
         }
     };
-    private final Vector2 touch = new Vector2();
     private final Vector2 mouse  = new Vector2();
 
     // 호버 상태
@@ -292,14 +287,6 @@ public class MainScreen implements Screen {
             this.color = color;
             this.iconPath = iconPath;
         }
-    }
-
-    public MainScreen(Core game) {
-        this(game, null, Suit.SWORDS);
-    }
-
-    public MainScreen(Core game, DebugContext debugContext) {
-        this(game, debugContext, Suit.SWORDS);
     }
 
     public MainScreen(Core game, DebugContext debugContext, Suit selectedSuit) {
@@ -415,6 +402,7 @@ public class MainScreen implements Screen {
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
+    // TODO: 디버그
     private void processDebugCommands() {
         if (debugContext == null) return;
 
@@ -428,7 +416,7 @@ public class MainScreen implements Screen {
                     advanceTurnPhase();
                     break;
                 case DAMAGE_OPPONENT:
-                    damageOpponent(25);
+                    damageOpponent();
                     break;
                 case RESTART:
                     restartGame();
@@ -457,14 +445,13 @@ public class MainScreen implements Screen {
         if (!GameConfig.AI_OPPONENT_ENABLED) return;
         PlayerController controller = currentController();
         if (controller == null) return;
-        // 화면은 호출 타이밍만 담당하고, 실제 판단은 PlayerController 구현체에 맡깁니다.
         controller.update(state, state.currentPlayerIndex, delta, controllerActions);
     }
 
     private void updateHover(float delta) {
         syncSelectionState();
         if (state.currentPlayerIndex != 0) {
-            // P1 턴이면 호버 없음
+            // 내 턴 아니면 호버 안함
             hoveredIndex = -1;
         } else {
             hoveredIndex = getHandIndexAt(
@@ -548,18 +535,16 @@ public class MainScreen implements Screen {
     }
 
     // 카드 사용 애니메이션 업데이트
-    // playProgress를 0→1로 증가, 1 되면 필드에 카드 배치 후 초기화
     private void updatePlayAnim(float delta) {
         if (playingCard == null) return;
 
         playProgress += PLAY_SPEED * delta;
         if (playProgress >= 1f) {
-            // 애니메이션 완료 — 지금은 그냥 제거 (나중에 필드 배치 로직 연결)
-            playProgress  = 1f;
-            playingCard   = null;
+            playProgress = 1f;
+            playingCard = null;
             playingOwnerIndex = -1;
             playingCardLandsInField = false;
-            playProgress  = 0f;
+            playProgress = 0f;
             if (queuedPlayAnimations.size > 0) {
                 PlayAnimationRequest next = queuedPlayAnimations.removeIndex(0);
                 beginPlayAnimation(next.card, next.owner, next.ownerIndex, next.startX, next.startY);
@@ -600,10 +585,6 @@ public class MainScreen implements Screen {
             + CardRenderer.CARD_W / 2f;
     }
 
-    private float handCardCenterY(float baseY, int index) {
-        return baseY + hoverLift(index) + selectionLift(index) + CardRenderer.CARD_H / 2f;
-    }
-
     private float fieldCardCenterX(Array<Card> field, int index) {
         float totalWidth = field.size * FIELD_CARD_W
             + Math.max(0, field.size - 1) * FIELD_GAP;
@@ -612,7 +593,7 @@ public class MainScreen implements Screen {
         return startX + index * (FIELD_CARD_W + FIELD_GAP) + FIELD_CARD_W / 2f;
     }
 
-    private float graveyardCardCenterX(Player player, int ownerIndex, Card card) {
+    private float graveyardCardCenterX(Player player, Card card) {
         float cardW = CardRenderer.CARD_W * GRAVE_CARD_SCALE;
         int index = graveyardIndexOf(player, card);
         float x = GRAVE_X;
@@ -622,7 +603,7 @@ public class MainScreen implements Screen {
         return x + GRAVE_W - 30f;
     }
 
-    private float graveyardCardCenterY(int ownerIndex, Card card) {
+    private float graveyardCardCenterY(int ownerIndex) {
         float cardH = CardRenderer.CARD_H * GRAVE_CARD_SCALE;
         float y = ownerIndex == 1 ? GRAVE_P1_Y : GRAVE_P0_Y;
         return y + 14f + cardH / 2f;
@@ -795,7 +776,7 @@ public class MainScreen implements Screen {
         if (r == null) return;
 
         Player player = state.players[0];
-        boolean useReversed = player.effectsSwapped ? !card.reversed : card.reversed;
+        boolean useReversed = player.effectsSwapped != card.reversed;
         String direction = useReversed ? "역방향" : "정방향";
         String alternateDirection = useReversed ? "정방향" : "역방향";
         String alternate = useReversed ? entry.upright : entry.reversed;
@@ -834,18 +815,17 @@ public class MainScreen implements Screen {
         font.setColor(color.r, color.g, color.b, color.a * alpha);
     }
 
-    private float drawWrappedText(String text, float x, float y, float maxWidth, float lineHeight,
-                                  com.badlogic.gdx.graphics.g2d.BitmapFont font) {
+    private void drawWrappedText(String text, float x, float y, float maxWidth, float lineHeight,
+                                 BitmapFont font) {
         String remaining = text;
         GlyphLayout layout = new GlyphLayout();
-        while (remaining.length() > 0) {
+        while (!remaining.isEmpty()) {
             int cut = fitText(remaining, maxWidth, font, layout);
             String line = remaining.substring(0, cut);
             font.draw(batch, line, x, y);
             remaining = remaining.substring(cut).trim();
             y -= lineHeight;
         }
-        return y;
     }
 
     private int fitText(String text, float maxWidth, com.badlogic.gdx.graphics.g2d.BitmapFont font,
@@ -891,10 +871,9 @@ public class MainScreen implements Screen {
 
     private void drawCardPerspective(Texture tex,
                                      float x, float y,   // 좌하 기준
-                                     float w, float h,
                                      float taper,
                                      float lean) {
-        drawCardPerspective(tex, x, y, w, h, taper, lean, 1f);
+        drawCardPerspective(tex, x, y, MainScreen.FIELD_CARD_W, MainScreen.FIELD_CARD_H, taper, lean, 1f);
     }
 
     private void drawCardPerspective(Texture tex,
@@ -914,7 +893,7 @@ public class MainScreen implements Screen {
         float x2 = cx + w / 2f - taper + lean, y2 = cy + h / 2f;  // 우상
         float x3 = cx - w / 2f + taper + lean, y3 = cy + h / 2f;  // 좌상
 
-        float cf = Float.intBitsToFloat(toFloatBits(brightness, brightness, brightness, 1f));
+        float cf = Float.intBitsToFloat(toFloatBits(brightness, brightness, brightness));
 
         float[] verts = {
             x0, y0, cf, u,  v2,
@@ -926,11 +905,11 @@ public class MainScreen implements Screen {
     }
 
     // color float bits 변환 유틸
-    private int toFloatBits(float r, float g, float b, float a) {
+    private int toFloatBits(float r, float g, float b) {
         int ri = (int)(r * 255) & 0xFF;
         int gi = (int)(g * 255) & 0xFF;
         int bi = (int)(b * 255) & 0xFF;
-        int ai = (int)(a * 255) & 0xFF;
+        int ai = (int)((float) 1.0 * 255) & 0xFF;
         return (ai << 24) | (bi << 16) | (gi << 8) | ri;
     }
 
@@ -1227,7 +1206,7 @@ public class MainScreen implements Screen {
                     0, 0, tex.getWidth(), tex.getHeight(),
                     true, true);
             } else {
-                drawCardPerspective(tex, x, y, FIELD_CARD_W, FIELD_CARD_H, taper, lean);
+                drawCardPerspective(tex, x, y, taper, lean);
             }
 
             batch.setColor(1f, 1f, 1f, 1f);
@@ -1497,14 +1476,6 @@ public class MainScreen implements Screen {
             x + width - cut, y + height);
     }
 
-    private void drawRoundedBar(float x, float y, float width, float height) {
-        if (width <= 0f || height <= 0f) return;
-        float radius = Math.min(height / 2f, width / 2f);
-        shape.rect(x + radius, y, Math.max(0f, width - radius * 2f), height);
-        shape.circle(x + radius, y + height / 2f, radius, 20);
-        shape.circle(x + width - radius, y + height / 2f, radius, 20);
-    }
-
     private void drawGameOver() {
         fonts.title.setColor(1f, 0.84f, 0f, 1f);
         String msg = "Player " + state.winnerIndex + " Wins!";
@@ -1604,6 +1575,7 @@ public class MainScreen implements Screen {
         }
     }
 
+    // 버프 및 디버프 뱃지 설정
     private Array<StatusBadge> playerStatuses(Player p) {
         Array<StatusBadge> statuses = new Array<>();
         if (p.carryOver) addStatus(statuses, "이월", "코스트 이월", "남은 코스트를 다음 턴까지 유지합니다.", COL_STATUS_BUFF);
@@ -1672,6 +1644,7 @@ public class MainScreen implements Screen {
         statuses.add(new StatusBadge(label, title, description, color, statusIconPath(title)));
     }
 
+    // 버프 및 디버프 아이콘 위치
     private String statusIconPath(String title) {
         switch (title) {
             case "추가 피해": return "Buffs/attack_boost.png";
@@ -1798,6 +1771,7 @@ public class MainScreen implements Screen {
         fonts.small.setColor(Color.WHITE);
     }
 
+    // 무덤 패널 애니메이션
     private Array<BurialAnimation> captureBurialAnimationStarts(int ownerIndex, TurnPhase turnPhase) {
         Array<BurialAnimation> animations = new Array<>();
         if (turnPhase != TurnPhase.END || ownerIndex < 0 || ownerIndex >= state.players.length) {
@@ -1829,13 +1803,14 @@ public class MainScreen implements Screen {
             Player owner = state.players[anim.ownerIndex];
             if (graveyardIndexOf(owner, anim.card) < 0) continue;
 
-            anim.endX = graveyardCardCenterX(owner, anim.ownerIndex, anim.card);
-            anim.endY = graveyardCardCenterY(anim.ownerIndex, anim.card);
+            anim.endX = graveyardCardCenterX(owner, anim.card);
+            anim.endY = graveyardCardCenterY(anim.ownerIndex);
             anim.progress = 0f;
             burialAnims.add(anim);
         }
     }
 
+    // TODO: 디버그
     private void debugDrawCurrentCard() {
         if (hasCardAnimation()) return;
 
@@ -2036,8 +2011,8 @@ public class MainScreen implements Screen {
         burialAnims.clear();
     }
 
-    private void damageOpponent(int amount) {
-        state.players[1 - state.currentPlayerIndex].hp -= amount;
+    private void damageOpponent() {
+        state.players[1 - state.currentPlayerIndex].hp -= 25;
         state.checkWinCondition();
     }
 
@@ -2231,10 +2206,6 @@ public class MainScreen implements Screen {
         return false;
     }
 
-    private boolean isCardInPlayerHand(Card card) {
-        return indexOfIdentity(state.players[0].hand, card) >= 0;
-    }
-
     // 입력 처리
     private void handleClick() {
         boolean left  = Gdx.input.justTouched();
@@ -2285,7 +2256,6 @@ public class MainScreen implements Screen {
         }
     }
 
-    // Lifecycle
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);

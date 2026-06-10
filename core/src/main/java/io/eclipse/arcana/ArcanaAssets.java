@@ -12,12 +12,7 @@ public class ArcanaAssets {
 
     private boolean queued;
 
-    private final AssetManager manager = new AssetManager(new FileHandleResolver() {
-        @Override
-        public FileHandle resolve(String fileName) {
-            return ArcanaFiles.asset(fileName);
-        }
-    });
+    private final AssetManager manager = new AssetManager(ArcanaFiles::asset);
 
     private static final String[] MAJOR_IDS = {
         "Fool", "Magician", "Priestess", "Empress", "Emperor",
@@ -223,7 +218,7 @@ public class ArcanaAssets {
 
         if (card.type == Card.ArcanaType.MAJOR) {
             String base = "cards/major/Cost/" + card.id + ".png";
-            String rev  = "cards/major/Cost/" + card.id + "_Reverse.png";
+            String rev = "cards/major/Cost/" + card.id + "_Reverse.png";
 
             if (card.reversed && manager.isLoaded(rev)) {
                 return manager.get(rev, Texture.class);
@@ -321,7 +316,6 @@ public class ArcanaAssets {
         manager.dispose();
     }
 
-    // png -> jpg 순차 로드
     private Texture getLoaded(String png, String jpg) {
         if (manager.isLoaded(png)) return manager.get(png, Texture.class);
         if (manager.isLoaded(jpg)) return manager.get(jpg, Texture.class);

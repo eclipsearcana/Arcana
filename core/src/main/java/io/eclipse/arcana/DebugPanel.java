@@ -111,7 +111,6 @@ public class DebugPanel extends ApplicationAdapter {
         clampLogScroll(logs.size());
 
         Gdx.gl.glClearColor(BACKGROUND.r, BACKGROUND.g, BACKGROUND.b, BACKGROUND.a);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
@@ -247,7 +246,7 @@ public class DebugPanel extends ApplicationAdapter {
         if (player.mirrorEffectsToSelfThisTurn) flags += "mirror ";
         if (player.cannotBeTargeted) flags += "untarget ";
         if (player.fakeShieldTurns > 0) flags += "shield(" + player.fakeShieldTurns + ") ";
-        return flags.length() == 0 ? "-" : flags.trim();
+        return flags.isEmpty() ? "-" : flags.trim();
     }
 
     private int countReversed(Player player) {
@@ -301,7 +300,7 @@ public class DebugPanel extends ApplicationAdapter {
 
     private float drawWrappedLogLine(String text, float x, float y, float maxWidth) {
         String remaining = text;
-        while (remaining.length() > 0 && y > LOG_Y + 16f) {
+        while (!remaining.isEmpty() && y > LOG_Y + 16f) {
             int cut = fitChars(remaining, maxWidth);
             String line = remaining.substring(0, cut);
             drawText(line, x, y, TEXT, fonts.small);
