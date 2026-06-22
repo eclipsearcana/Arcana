@@ -85,19 +85,19 @@ public class ArcanaAssets {
             if      (fileExists(png)) manager.load(png, Texture.class);
             else if (fileExists(jpg)) manager.load(jpg, Texture.class);
 
-            String cost    = "cards/major/Cost/" + id + ".png";
-            String costRev = "cards/major/Cost/" + id + "_Reverse.png";  // ← 추가
+            String cost    = "cards/major/cost/" + id + ".png";
+            String costRev = "cards/major/cost/" + id + "_Reverse.png";  // ← 추가
             if (fileExists(cost))    manager.load(cost,    Texture.class);
             if (fileExists(costRev)) manager.load(costRev, Texture.class);  // ← 추가
         }
 
-        String foolCopy = "cards/major/Cost/Fool_Copy.png";
+        String foolCopy = "cards/major/cost/Fool_Copy.png";
         if (fileExists(foolCopy)) manager.load(foolCopy, Texture.class);
 
-        String magicianContract = "cards/major/Cost/Magician_Contract.png";
+        String magicianContract = "cards/major/cost/Magician_Contract.png";
         if (fileExists(magicianContract)) manager.load(magicianContract, Texture.class);
 
-        String magicianIllusion = "cards/major/Cost/Magician_Illusion.png";
+        String magicianIllusion = "cards/major/cost/Magician_Illusion.png";
         if (fileExists(magicianIllusion)) manager.load(magicianIllusion, Texture.class);
 
         // 마이너 카드 일러스트
@@ -205,20 +205,20 @@ public class ArcanaAssets {
 
     public Texture cardCost(Card card, int effectiveCost) {
         if (card.isCloned) {
-            return manager.get("cards/major/Cost/Fool_Copy.png", Texture.class);
+            return manager.get("cards/major/cost/Fool_Copy.png", Texture.class);
         }
 
         if (card.powerMultiplier > 1.1f && !card.isIllusion) {
-            return manager.get("cards/major/Cost/Magician_Contract.png", Texture.class);
+            return manager.get("cards/major/cost/Magician_Contract.png", Texture.class);
         }
 
         if (card.isIllusion) {
-            return manager.get("cards/major/Cost/Magician_Illusion.png", Texture.class);
+            return manager.get("cards/major/cost/Magician_Illusion.png", Texture.class);
         }
 
         if (card.type == Card.ArcanaType.MAJOR) {
-            String base = "cards/major/Cost/" + card.id + ".png";
-            String rev = "cards/major/Cost/" + card.id + "_Reverse.png";
+            String base = "cards/major/cost/" + card.id + ".png";
+            String rev = "cards/major/cost/" + card.id + "_Reverse.png";
 
             if (card.reversed && manager.isLoaded(rev)) {
                 return manager.get(rev, Texture.class);
